@@ -7,12 +7,12 @@ import CriarCampanha from "./componentes/paginas/projeto/CriarCampanha";
 import Leads from "./componentes/paginas/projeto/Leads";
 import Login from "./componentes/paginas/projeto/Login";
 import Relatorios from "./componentes/paginas/projeto/Relatorios";
+import EditarConta from "./componentes/paginas/projeto/EditarConta";
 
 function AppRoutes() {
   return (
     <Router>
       <Header />
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/campanhas" element={<Campanhas />} />

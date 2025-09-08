@@ -1,9 +1,8 @@
-// src/Campanhas.tsx
 import React from "react";
 
 
 
-type Campaign = {
+type Campanhas = {
   id: number;
   name: string;
   status: "Ativa" | "Pausada" | "Finalizada";

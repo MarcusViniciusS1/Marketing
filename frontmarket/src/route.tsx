@@ -1,21 +1,31 @@
-import Footer from "./componentes/footer";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./componentes/header";
+import Footer from "./componentes/footer";
 import Home from "./componentes/paginas/home";
-import Sidebar from "./componentes/siderbar";
+import Campanhas from "./componentes/paginas/projeto/Campanhas";
+import CriarCampanha from "./componentes/paginas/projeto/CriarCampanha";
+import Leads from "./componentes/paginas/projeto/Leads";
+import Login from "./componentes/paginas/projeto/Login";
+import Relatorios from "./componentes/paginas/projeto/Relatorios";
 
-function Route() {
+function AppRoutes() {
   return (
-    <>
+    <Router>
       <Header />
-      <div style={{ display: "flex" }}>
-        <Sidebar />
-        <div className="flex-grow-1 p-4">
-          <Home />
-        </div>
-      </div>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/campanhas" element={<Campanhas />} />
+        <Route path="/criarcampanha" element={<CriarCampanha />} />
+        <Route path="/leads" element={<Leads />} />
+        <Route path="/relatorios" element={<Relatorios />} /> 
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Home />} />
+      </Routes>
+
       <Footer />
-    </>
+    </Router>
   );
 }
 
-export default Route;
+export default AppRoutes;

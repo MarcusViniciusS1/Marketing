@@ -1,6 +1,8 @@
 // src/Campanhas.tsx
 import React from "react";
 
+
+
 type Campaign = {
   id: number;
   name: string;

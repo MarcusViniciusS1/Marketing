@@ -48,7 +48,12 @@ function Home() {
       
     </div>
   );
-  
+   // Desenvolver o designer com o bootstrap
+   // 
+   //
+   //
+   //
+   //
 }
 
 export default Home;

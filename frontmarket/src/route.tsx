@@ -1,31 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./componentes/header";
-import Footer from "./componentes/footer";
-import Home from "./componentes/paginas/home";
-import Campanhas from "./componentes/paginas/projeto/Campanhas";
-import CriarCampanha from "./componentes/paginas/projeto/CriarCampanha";
-import Leads from "./componentes/paginas/projeto/Leads";
-import Login from "./componentes/paginas/projeto/Login";
-import Relatorios from "./componentes/paginas/projeto/Relatorios";
-import EditarConta from "./componentes/paginas/projeto/EditarConta";
+import { Route, Routes } from "react-router-dom";
+import LayoutAdmin from "./components/LayoutAdmin/index";
+import Login from "./pages/login";
+import Home from "./pages/home";
+import LayoutLogin from "./components/LayoutLogin";
+import Cadastro from "./pages/cadastrese";
+import Campanhas from "./pages/campanhas/index";
+import CriarCamp from "./pages/CriarCamp/";
+import Relatorios from "./pages/relatorios";
+import Leads from "./pages/leaders";
+import Usuario from "./pages/usuario";
+
+
 
 function AppRoutes() {
-  return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/campanhas" element={<Campanhas />} />
-        <Route path="/criarcampanha" element={<CriarCampanha />} />
-        <Route path="/leads" element={<Leads />} />
-        <Route path="/relatorios" element={<Relatorios />} /> 
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Home />} />
-      </Routes>
+    return(
+        <Routes>
+            <Route element={<LayoutLogin />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/cadastro" element={<Cadastro />} />
 
-      <Footer />
-    </Router>
-  );
+            </Route>
+            <Route element= {<LayoutAdmin/>}>
+                <Route path="/" element={<Home/>}/>
+                <Route path="/usuarios" element={<Usuario/>}/>
+                <Route path="/campanhas" element={<Campanhas/>} />
+                <Route path="/CriarCamp" element={<CriarCamp/>} />
+                <Route path="/leads" element={<Leads/>} />
+                <Route path="/relatorios" element={<Relatorios/>}/>
+                
+            </Route>
+        </Routes>
+    );
 }
 
 export default AppRoutes;

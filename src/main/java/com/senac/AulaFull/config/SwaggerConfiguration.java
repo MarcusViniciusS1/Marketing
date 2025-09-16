@@ -22,8 +22,8 @@ public class SwaggerConfiguration {
                                 .bearerFormat("JWT")
                 ))
                 .info(new Info()
-                .title("Controle de equipamentos de TI")
+                .title("Gerenciamento de Marketing")
                 .version("1.0")
-                .description("Projeto para controle de equipamentos de TI, executado na aula de FullStack, 4ª fase - Senac"));
+                .description("Projeto de Gerenciamento de Marketing, executado na aula de FullStack, 4ª fase - SENAC"));
     }
 }

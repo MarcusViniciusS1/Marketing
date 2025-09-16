@@ -16,6 +16,4 @@ O objetivo é fornecer uma interface organizada para gerenciar campanhas, leads,
 
 ---
 
-## 📂 Estrutura do Projeto
-
 @ Marcus Marcello Todos os direitos reservados.

@@ -1,16 +1,13 @@
-package com.senac.AulaFull;
+package com.senac.aulafull;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AulaFullApplication {
+public class AulafullApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AulaFullApplication.class, args);
-		}
-
-
-
-
+		SpringApplication.run(AulafullApplication.class, args);
 	}
+
+}

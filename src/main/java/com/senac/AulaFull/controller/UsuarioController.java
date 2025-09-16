@@ -1,38 +1,56 @@
-package com.senac.AulaFull.controller;
+package com.senac.aulafull.controller;
 
-import com.senac.AulaFull.model.Usuario;
-import com.senac.AulaFull.repository.UsuarioRepository;
+import com.senac.aulafull.model.Usuario;
+import com.senac.aulafull.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
-@Tag(name = "Usuários", description = "Controle de login e cadastro de usuários")
+@Tag(name = "Contralador de usuários", description = "Camada responsável por controlar os registros de usuários")
 public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @PostMapping("/registrar")
-    @Operation(summary = "Registrar um novo usuário")
-    public ResponseEntity<Usuario> registrar(@RequestBody Usuario usuario){
-        return ResponseEntity.ok(usuarioRepository.save(usuario));
+    @GetMapping("/{id}")
+    public ResponseEntity<?> consultaPorId(@PathVariable Long id) {
+
+        var usuario = usuarioRepository.findById(id).
+                orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(usuario);
     }
 
-    @PostMapping("/login")
-    @Operation(summary = "Login de usuário")
-    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String senha){
-        Optional<Usuario> usuario = usuarioRepository.findByEmailAndSenha(email, senha);
+    @GetMapping
+    @Operation(summary = "email", description = "Método responsável por consultar os usuários do sistema")
+    public ResponseEntity<?> consultarTodos() {
 
-        if(usuario.isPresent()){
-            return ResponseEntity.ok("Login realizado com sucesso!");
-        } else {
-            return ResponseEntity.status(401).body("Usuário ou senha inválidos.");
+        return ResponseEntity.ok(usuarioRepository.findAll());
+
+    }
+
+
+    @PostMapping
+    @Operation(summary = "Salvar Usuário", description = "Método responsável por criar os usuários do sistema")
+    public ResponseEntity<?> salvarUsuario(@RequestBody Usuario usuario) {
+        try {
+
+            var usuarioResponse = usuarioRepository.save(usuario);
+
+            return ResponseEntity.ok(usuarioResponse);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

@@ -50,16 +50,5 @@ function Home() {
   );
   
 }
-// react.ts
-// Boodstrap
-// axios
-// Proibido local storage
-// Troca de template na rota
-// Dois tamplates usando outlet 
-// Menu hamburger dimencionar com tag do outlet
-// Vai ser cobrado o uso de componentes
-// Sem CSS somente com bootstrap
-// 
-// 
 
 export default Home;

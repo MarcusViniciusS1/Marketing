@@ -1,5 +1,6 @@
 package com.senac.aulafull.controller;
 
+import com.senac.AulaFull.dto.LoginResponseDTO;
 import com.senac.aulafull.dto.LoginRequestDto;
 import com.senac.aulafull.services.TokenService;
 import com.senac.aulafull.services.UsuarioService;
@@ -35,6 +36,6 @@ public class AuthController {
         }
         var token = tokenService.gerarToken(request);
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 }

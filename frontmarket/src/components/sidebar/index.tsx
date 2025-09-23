@@ -72,12 +72,7 @@ const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
                 </Link>
               </li>
               <li className="mb-1">
-                <Link
-                  to="/criarCamp"
-                  className="text-white text-decoration-none d-block px-2 py-1 rounded hover-bg-secondary"
-                >
-                  Criar Campanhas
-                </Link>
+      
               </li>
               <li className="mb-1">
                 <Link

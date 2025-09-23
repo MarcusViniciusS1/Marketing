@@ -5,6 +5,7 @@ import Home from "./pages/home";
 import LayoutLogin from "./components/LayoutLogin";
 import Cadastro from "./pages/cadastrese";
 import Campanhas from "./pages/campanhas/index";
+import CriarCamp from "./pages/CriarCamp/";
 import Relatorios from "./pages/relatorios";
 import Leads from "./pages/leaders";
 import Usuario from "./pages/usuario";
@@ -22,11 +23,12 @@ function AppRoutes() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/usuarios" element={<Usuario />} />
                 <Route path="/campanhas" element={<Campanhas />} />
+                <Route path="/CriarCamp" element={<CriarCamp />} />
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/relatorios" element={<Relatorios />} />
             </Route>
 
-            {/* Redirect da raiz (/) para /home */}
+           
             <Route path="/" element={<Navigate to="/home" />} />
         </Routes>
     );

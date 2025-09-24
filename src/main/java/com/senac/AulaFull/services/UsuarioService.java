@@ -1,7 +1,7 @@
-package com.senac.aulafull.services;
+package com.senac.AulaFull.services;
 
-import com.senac.aulafull.dto.LoginRequestDto;
-import com.senac.aulafull.repository.UsuarioRepository;
+import com.senac.AulaFull.dto.LoginRequestDto;
+import com.senac.AulaFull.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

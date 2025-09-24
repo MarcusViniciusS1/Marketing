@@ -1,4 +1,4 @@
-package com.senac.aulafull.model;
+package com.senac.AulaFull.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,6 @@ public class Token {
     private String token;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usuario_id", nullable = true)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 }

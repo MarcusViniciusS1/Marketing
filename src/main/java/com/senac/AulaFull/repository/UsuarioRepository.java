@@ -1,6 +1,6 @@
-package com.senac.aulafull.repository;
+package com.senac.AulaFull.repository;
 
-import com.senac.aulafull.model.Usuario;
+import com.senac.AulaFull.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;

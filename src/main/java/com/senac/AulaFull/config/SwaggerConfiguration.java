@@ -1,4 +1,4 @@
-package com.senac.aulafull.config;
+package com.senac.AulaFull.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

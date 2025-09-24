@@ -1,56 +1,56 @@
-package com.senac.aulafull.controller;
+package com.senac.AulaFull.controller;
 
-import com.senac.aulafull.model.Usuario;
-import com.senac.aulafull.repository.UsuarioRepository;
+import com.senac.AulaFull.model.Usuario;
+import com.senac.AulaFull.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/usuarios")
-@Tag(name = "Contralador de usuários", description = "Camada responsável por controlar os registros de usuários")
+@Tag(name = "Controlador de usuários", description = "Camada responsável por controlar os registros de usuários")
 public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @GetMapping("/{id}")
     public ResponseEntity<?> consultaPorId(@PathVariable Long id) {
+        Optional<Usuario> usuario = usuarioRepository.findById(id);
 
-        var usuario = usuarioRepository.findById(id).
-                orElse(null);
-
-        if (usuario == null) {
+        if (usuario.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(usuario.get());
     }
 
     @GetMapping
-    @Operation(summary = "email", description = "Método responsável por consultar os usuários do sistema")
+    @Operation(summary = "Listar todos", description = "Método responsável por consultar todos os usuários do sistema")
     public ResponseEntity<?> consultarTodos() {
-
         return ResponseEntity.ok(usuarioRepository.findAll());
-
     }
 
-
     @PostMapping
-    @Operation(summary = "Salvar Usuário", description = "Método responsável por criar os usuários do sistema")
+    @Operation(summary = "Salvar Usuário", description = "Método responsável por criar usuários no sistema")
     public ResponseEntity<?> salvarUsuario(@RequestBody Usuario usuario) {
         try {
+            // Criptografa a senha antes de salvar
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 
-            var usuarioResponse = usuarioRepository.save(usuario);
+            Usuario usuarioResponse = usuarioRepository.save(usuario);
 
             return ResponseEntity.ok(usuarioResponse);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Erro ao salvar usuário: " + e.getMessage());
         }
     }
 }

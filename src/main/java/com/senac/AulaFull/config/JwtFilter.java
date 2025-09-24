@@ -1,6 +1,6 @@
-package com.senac.aulafull.config;
+package com.senac.AulaFull.config;
 
-import com.senac.aulafull.services.TokenService;
+import com.senac.AulaFull.services.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -23,43 +22,40 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
-
+        String path = request.getRequestURI(); //cara que retorna os métodos
         if (path.equals("/auth/login")
-        || path.startsWith("/swagger-resources")
-        || path.startsWith("/v3/api-docs")
-        || path.startsWith("/webjars")
-        || path.startsWith("/swagger-ui")) {
-
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/webjars")
+                || path.startsWith("/swagger-ui")
+        ) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String header = request.getHeader("Authorization");
-
         try {
-            if (header!= null && header.startsWith("Bearer ")){
+
+
+            String header = request.getHeader("Authorization"); //qual o padrão de autenticação?
+            if (header != null && header.startsWith("Bearer ")) {
                 String token = header.replace("Bearer ", "");
                 var usuario = tokenService.validarToken(token);
 
-                var autorizacao = new UsernamePasswordAuthenticationToken(
-                        usuario.getEmail(),
-                        null,
-                        usuario.getAuthorities());
 
+                var autorizacao = new UsernamePasswordAuthenticationToken(
+                        usuario.getEmail(),null,
+                        usuario.getAuthorities()); //pegando autorizações do usuários
                 SecurityContextHolder.getContext().setAuthentication(autorizacao);
 
-                filterChain.doFilter(request, response);
+                filterChain.doFilter(request , response);
 
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token não informado");
+                response.getWriter().write("Ta loko meu? ta invadindo");
                 return;
             }
-
-        } catch (Exception e) {
+        }catch (Exception e){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token não informado");
+            response.getWriter().write("Ta loko meu? ta invadindo");
             return;
         }
     }

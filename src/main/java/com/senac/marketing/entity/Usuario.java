@@ -1,9 +1,8 @@
-<<<<<<< HEAD:src/main/java/com/senac/marketing/entity/Usuario.java
+
 // src/main/java/com/senac/marketing/entity/Usuario.java
 package com.senac.marketing.entity;
-=======
-package com.senac.AulaFull.model;
->>>>>>> 30ed11cefc0f76bf6ecf0fbacc65ddc3d9c9d933:src/main/java/com/senac/AulaFull/model/Usuario.java
+
+
 
 import com.senac.marketing.enums.PerfilUsuario;
 import jakarta.persistence.*;

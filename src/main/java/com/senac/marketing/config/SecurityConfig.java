@@ -59,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/empresas/**").hasAuthority("ADMIN")
 
                         // ...
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

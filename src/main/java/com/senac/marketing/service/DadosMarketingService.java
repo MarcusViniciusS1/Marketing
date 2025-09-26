@@ -42,7 +42,15 @@ public class DadosMarketingService {
         novoDado.setImpressoes(request.getImpressoes());
         novoDado.setClicks(request.getClicks());
         novoDado.setConversoes(request.getConversoes());
-        novoDado.setEmpresaId(usuario.getEmpresaId());
+
+        // --- PONTO DA CORREÇÃO ---
+        // Se houver um usuário, usa o empresaId dele.
+        // Se não (desenvolvimento), usa um ID padrão (1L) para permitir o cadastro.
+        if (usuario != null) {
+            novoDado.setEmpresaId(usuario.getEmpresaId());
+        } else {
+            novoDado.setEmpresaId(1L); // ID da empresa padrão para ambiente de desenvolvimento
+        }
 
         return mapToResponse(dadosMarketingRepository.save(novoDado));
     }
@@ -52,7 +60,7 @@ public class DadosMarketingService {
         Usuario usuario = usuarioService.getUsuarioFromAuthentication(authentication);
 
         List<DadosMarketing> dados;
-        if (usuarioService.isUsuarioAdmin(usuario)) {
+        if (usuario == null || usuarioService.isUsuarioAdmin(usuario)) {
             dados = dadosMarketingRepository.findAll();
         } else {
             dados = dadosMarketingRepository.findByEmpresaIdOrderByDataCriacaoDesc(usuario.getEmpresaId());
@@ -69,7 +77,7 @@ public class DadosMarketingService {
 
         Usuario usuario = usuarioService.getUsuarioFromAuthentication(authentication);
 
-        if (!usuarioService.isUsuarioAdmin(usuario) && !dados.getEmpresaId().equals(usuario.getEmpresaId())) {
+        if (usuario != null && !usuarioService.isUsuarioAdmin(usuario) && !dados.getEmpresaId().equals(usuario.getEmpresaId())) {
             throw new BusinessException("Acesso negado. Você não tem permissão para acessar este recurso.", HttpStatus.FORBIDDEN);
         }
 
@@ -83,7 +91,7 @@ public class DadosMarketingService {
 
         Usuario usuario = usuarioService.getUsuarioFromAuthentication(authentication);
 
-        if (!usuarioService.isUsuarioAdmin(usuario) && !dadoExistente.getEmpresaId().equals(usuario.getEmpresaId())) {
+        if (usuario != null && !usuarioService.isUsuarioAdmin(usuario) && !dadoExistente.getEmpresaId().equals(usuario.getEmpresaId())) {
             throw new BusinessException("Acesso negado. Você não tem permissão para acessar este recurso.", HttpStatus.FORBIDDEN);
         }
 
@@ -105,7 +113,7 @@ public class DadosMarketingService {
 
         Usuario usuario = usuarioService.getUsuarioFromAuthentication(authentication);
 
-        if (!usuarioService.isUsuarioAdmin(usuario) && !dados.getEmpresaId().equals(usuario.getEmpresaId())) {
+        if (usuario != null && !usuarioService.isUsuarioAdmin(usuario) && !dados.getEmpresaId().equals(usuario.getEmpresaId())) {
             throw new BusinessException("Acesso negado. Você não tem permissão para deletar este recurso.", HttpStatus.FORBIDDEN);
         }
 

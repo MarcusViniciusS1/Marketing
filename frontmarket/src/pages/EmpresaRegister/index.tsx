@@ -28,13 +28,13 @@ const EmpresaRegister: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
+        setSuccessMessage('');
 
         try {
-            if (!token) {
-                setError('Acesso negado. Por favor, faça login como Administrador.');
-                setLoading(false);
-                return;
-            }
+            // --- PONTO DA CORREÇÃO ---
+            // A verificação "if (!token)" foi removida para permitir o envio do formulário
+            // mesmo sem um token de login, alinhando-se com a segurança desativada do back-end.
 
             const response = await axios.post(API_URL, formData, {
                 headers: {
@@ -109,6 +109,3 @@ const EmpresaRegister: React.FC = () => {
 };
 
 export default EmpresaRegister;
-
-    
-    

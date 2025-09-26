@@ -44,9 +44,19 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getSenha())
             );
 
-            String token = jwtService.generateToken(authentication.getName());
+            String userEmail = authentication.getName();
+            String token = jwtService.generateToken(userEmail);
 
-            return new LoginResponse(token);
+            // Busca os dados do usuário para incluir na resposta
+            Usuario usuario = usuarioService.buscarPorEmail(userEmail);
+
+            LoginResponse.UserResponse userResponse = new LoginResponse.UserResponse(
+                    usuario.getNome(),
+                    usuario.getEmail(),
+                    usuario.getPerfil()
+            );
+
+            return new LoginResponse(token, userResponse);
 
         } catch (Exception e) {
             throw new BusinessException("Credenciais inválidas", HttpStatus.UNAUTHORIZED);

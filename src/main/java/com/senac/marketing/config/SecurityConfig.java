@@ -40,7 +40,7 @@ public class SecurityConfig {
     }
 
     /**
-
+//.permitAll() .authenticated()
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,18 +48,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Permite acesso irrestrito aos endpoints de autenticação e Swagger
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-
-                        // Endpoints de marketing protegidos por papel (role) -
-                        // Regras de papel (role) ainda estão no código, mas a linha 'anyRequest().permitAll()'
-                        // torna TODAS as rotas acessíveis.
-                        .requestMatchers("/api/marketing/**").hasAnyAuthority("USUARIO_EMPRESA", "ADMIN")
-                        .requestMatchers("/api/empresas/**").hasAuthority("ADMIN")
-
-                        // ...
-                        .anyRequest().authenticated()
+                        // Permite acesso irrestrito a TODOS os endpoints
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

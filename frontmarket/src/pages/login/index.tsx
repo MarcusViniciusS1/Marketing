@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+// Caminho da importação corrigido
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -7,6 +8,7 @@ const Login: React.FC = () => {
     const [senha, setSenha] = useState('');
     const { login, loading, error } = useAuth();
 
+    // Adicionado tipo de evento
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         login(email, senha);

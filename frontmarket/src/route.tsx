@@ -1,49 +1,41 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+
+// --- PONTO DA CORREÇÃO ---
+// Adicionadas todas as importações que estavam faltando
 import LayoutAdmin from './components/layouts/LayoutAdmin';
 import LayoutLogin from './components/layouts/LayoutLogin';
-
-// Importação das páginas da nova estrutura
 import Home from './pages/home/home';
 import Login from './pages/login';
 import Register from './pages/Register';
 import EmpresaRegister from './pages/EmpresaRegister';
-
-
-// Componente para proteger rotas
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { isLoggedIn, loading } = useAuth();
-    
-    if (loading) {
-        return <div className="text-center p-5">Carregando autenticação...</div>;
-    }
-
-    if (!isLoggedIn) {
-        return <Navigate to="/login" replace />;
-    }
-
-    return <>{children}</>;
-};
+import RegistrarDados from './pages/RegistrarDados';
+import ConsultarDados from './pages/ConsultarDados';
+import ConsultarEmpresas from './pages/ConsultarEmpresas';
+// --- FIM DA CORREÇÃO ---
 
 const App: React.FC = () => {
     return (
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
-                    {/* Rotas Públicas (Login e Cadastro) */}
+                    {/* Rotas Públicas */}
                     <Route element={<LayoutLogin />}>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                     </Route>
 
-                    {/* Rotas Protegidas (Dashboard) */}
-                    <Route element={<ProtectedRoute><LayoutAdmin /></ProtectedRoute>}>
+                    {/* Rotas do Sistema */}
+                    <Route element={<LayoutAdmin />}>
                         <Route path="/" element={<Home />} />
                         <Route path="/empresas/register" element={<EmpresaRegister />} />
+                        <Route path="/consultar-empresas" element={<ConsultarEmpresas />} />
+                        <Route path="/registrar-dados" element={<RegistrarDados />} />
+                        <Route path="/consultar-dados" element={<ConsultarDados />} />
                     </Route>
                     
-                    {/* Redirecionamento de rotas inválidas */}
+                    {/* Redirecionamento padrão */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </AuthProvider>

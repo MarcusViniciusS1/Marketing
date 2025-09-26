@@ -64,10 +64,19 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public Usuario getUsuarioFromAuthentication(Authentication authentication) {
+        // --- PONTO DA CORREÇÃO ---
+        // Adicionada uma verificação para evitar o erro se a autenticação for nula
+        if (authentication == null || authentication.getName() == null) {
+            return null;
+        }
         return buscarPorEmail(authentication.getName());
     }
 
     public boolean isUsuarioAdmin(Usuario usuario) {
+        // Adicionada uma verificação para o caso do usuário ser nulo
+        if (usuario == null) {
+            return false;
+        }
         return PerfilUsuario.ADMIN.equals(usuario.getPerfil());
     }
 }

@@ -1,8 +1,7 @@
 // src/main/java/com/senac/marketing/security/UserDetailsServiceImpl.java
 package com.senac.marketing.security;
 
-import com.senac.marketing.entity.Usuario;
-import com.senac.marketing.repository.UsuarioRepository;
+import com.senac.marketing.domain.repository.UsuarioRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

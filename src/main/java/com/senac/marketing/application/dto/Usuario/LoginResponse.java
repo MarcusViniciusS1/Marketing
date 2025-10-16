@@ -1,7 +1,7 @@
 // src/main/java/com/senac/marketing/dto/auth/LoginResponse.java
-package com.senac.marketing.dto.auth;
+package com.senac.marketing.application.dto.auth.Usuario;
 
-import com.senac.marketing.enums.PerfilUsuario;
+import com.senac.marketing.domain.enums.PerfilUsuario;
 import lombok.Value;
 
 /**

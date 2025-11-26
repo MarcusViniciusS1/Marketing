@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/canais")
-@Tag(name = "Canais de Marketing", description = "Listagem de canais disponíveis (Google, Meta, etc)")
+@Tag(name = "Canais", description = "Listagem de canais de marketing")
 public class CanalController {
 
     @Autowired

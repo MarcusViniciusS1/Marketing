@@ -3,7 +3,6 @@ import api from "./api";
 export interface Empresa {
   id: number;
   nomeFantasia: string;
-  razaoSocial?: string;
   cnpj: string;
   setor: string;
   email: string;
@@ -23,7 +22,8 @@ export interface EmpresaRequest {
   endereco: string;
 }
 
-// --- Métodos para o Usuário (Minha Empresa) ---
+// --- Métodos de Usuário ---
+
 export async function buscarMinhaEmpresa(): Promise<Empresa> {
   const response = await api.get<Empresa>("/empresas/minha");
   return response.data;
@@ -39,7 +39,8 @@ export async function atualizarEmpresa(data: EmpresaRequest): Promise<Empresa> {
   return response.data;
 }
 
-// --- Métodos para o ADMIN (Gestão Geral) ---
+// --- Métodos de Admin ---
+
 export async function buscarTodasEmpresas(): Promise<Empresa[]> {
   const response = await api.get<Empresa[]>("/empresas");
   return response.data;

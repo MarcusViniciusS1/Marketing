@@ -1,99 +1,112 @@
 package com.marketing.desktop.controller;
 
-import com.marketing.desktop.model.Empresa;
-import com.marketing.desktop.model.Usuario;
-import com.marketing.desktop.utils.JPAUtils;
-import jakarta.persistence.EntityManager;
-import javafx.event.ActionEvent;
+import com.marketing.desktop.model.Empresa; // Verifique se o pacote é este ou domain.entity
+import com.marketing.desktop.model.Usuario; // Verifique se o pacote é este ou domain.entity
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import java.time.LocalDateTime;
 
 public class ConfiguracaoAdminController {
 
-    @FXML private TextField txtNome;
-    @FXML private TextField txtEmail;
-    @FXML private TextField txtSenha;
-    @FXML private TextField txtCpf;
-    @FXML private TextField txtTelefone;
+    @FXML
+    private TextField txtNome;
 
-    public void cadastrarAdmin(ActionEvent event) {
-        if (txtNome.getText().isEmpty() || txtEmail.getText().isEmpty() || txtSenha.getText().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Erro", "Preencha os campos obrigatórios!");
-            return;
-        }
+    @FXML
+    private TextField txtCpf;
 
-        EntityManager entityManager = null;
+    @FXML
+    private TextField txtEmail;
+
+    @FXML
+    private TextField txtTelefone;
+
+    @FXML
+    private PasswordField txtSenha;
+
+    // Factory do Hibernate (JPA)
+    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("marketingPU");
+
+    @FXML
+    public void cadastrarAdmin() {
+        EntityManager em = emf.createEntityManager();
+
         try {
-            entityManager = JPAUtils.getEntityManager();
-            entityManager.getTransaction().begin();
+            em.getTransaction().begin();
 
-            final Long EMPRESA_ID = 1L;
-            final String CNPJ_PADRAO = "00.000.000/0001-00";
+            // ==================================================================================
+            // CORREÇÃO DO ERRO: Verificar/Criar a Empresa antes de criar o Usuário
+            // ==================================================================================
 
-            Empresa empresa = entityManager.find(Empresa.class, EMPRESA_ID);
+            // Tenta buscar a empresa padrão (ID 1)
+            Empresa empresaPadrao = em.find(Empresa.class, 1L);
 
-            if (empresa == null) {
-                // NOME ALTERADO PARA MARKETINGDESK
-                empresa = new Empresa(EMPRESA_ID, "MarketingDESK Matriz", CNPJ_PADRAO, LocalDateTime.now());
+            // Se não existir, CRIA ELA AGORA para evitar o erro de chave estrangeira
+            if (empresaPadrao == null) {
+                empresaPadrao = new Empresa();
+                // Preencha os dados obrigatórios da sua entidade Empresa
+                empresaPadrao.setNomeFantasia("Minha Empresa Matriz");
+                empresaPadrao.setRazaoSocial("Empresa Admin Ltda");
+                empresaPadrao.setCnpj("00.000.000/0001-00");
+                empresaPadrao.setEmail("admin@empresa.com");
+                empresaPadrao.setTelefone("0000000000");
+                empresaPadrao.setDataCadastro(LocalDateTime.now());
+                // Se tiver outros campos obrigatórios (NOT NULL) na Empresa, defina aqui!
+
+                em.persist(empresaPadrao); // Salva a empresa e gera o ID 1
             }
-            entityManager.merge(empresa);
 
-            Usuario usuario = new Usuario();
-            usuario.setNome(txtNome.getText());
-            usuario.setEmail(txtEmail.getText());
-            usuario.setSenha(txtSenha.getText());
-            usuario.setCpf(txtCpf.getText());
-            usuario.setTelefone(txtTelefone.getText());
-            usuario.setDataCadastro(LocalDateTime.now());
-            usuario.setRole("ADMIN"); // Role correto
-            usuario.setEmpresaId(EMPRESA_ID);
+            // ==================================================================================
+            // CRIAÇÃO DO USUÁRIO ADMIN
+            // ==================================================================================
 
-            entityManager.persist(usuario);
-            entityManager.getTransaction().commit();
+            Usuario admin = new Usuario();
+            admin.setNome(txtNome.getText());
+            admin.setCpf(txtCpf.getText());
+            admin.setEmail(txtEmail.getText());
+            admin.setTelefone(txtTelefone.getText());
+            admin.setSenha(txtSenha.getText()); // Em produção, use hash/criptografia!
+            admin.setRole("ADMIN"); // Define como Admin
+            admin.setDataCadastro(LocalDateTime.now());
 
-            showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Administrador cadastrado com sucesso!");
+            // VINCULA O USUÁRIO À EMPRESA QUE ACABAMOS DE GARANTIR QUE EXISTE
+            admin.setEmpresa(empresaPadrao);
+
+            // Salva o usuário
+            em.persist(admin);
+
+            em.getTransaction().commit();
+            mostrarAlerta("Sucesso", "Usuário Admin e Empresa Padrão cadastrados!");
             limparCampos();
 
         } catch (Exception e) {
-            if (entityManager != null && entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
             }
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Erro", "Falha ao cadastrar: " + e.getMessage());
+            mostrarAlerta("Erro", "Falha ao cadastrar: " + e.getMessage());
         } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
+            em.close();
         }
     }
 
-    public void voltar(ActionEvent event) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/marketing/desktop/menu-view.fxml"));
-        Scene scene = new Scene(loader.load());
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.setScene(scene);
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
+    private void mostrarAlerta(String titulo, String mensagem) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        alert.setContentText(mensagem);
         alert.showAndWait();
     }
 
     private void limparCampos() {
         txtNome.clear();
-        txtEmail.clear();
-        txtSenha.clear();
         txtCpf.clear();
+        txtEmail.clear();
         txtTelefone.clear();
+        txtSenha.clear();
     }
 }

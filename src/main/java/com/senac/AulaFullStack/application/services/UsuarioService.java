@@ -46,6 +46,23 @@ public class UsuarioService {
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
+    // --- MÉTODO QUE ESTAVA FALTANDO ---
+    public List<UsuarioResponseDto> listarPorEmpresa(UsuarioPrincipalDto principal) {
+        Usuario usuarioLogado = usuarioRepository.findById(principal.id()).orElseThrow();
+
+        if (usuarioLogado.getEmpresa() == null) {
+            // Se o usuário não tem empresa, retorna apenas ele mesmo ou lista vazia
+            return List.of(usuarioLogado.toDtoResponse());
+        }
+
+        // Filtra usuários que pertencem à mesma empresa do usuário logado
+        return usuarioRepository.findAll().stream()
+                .filter(u -> u.getEmpresa() != null && u.getEmpresa().getId().equals(usuarioLogado.getEmpresa().getId()))
+                .map(Usuario::toDtoResponse)
+                .collect(Collectors.toList());
+    }
+    // ----------------------------------
+
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
         // 1. Validação de E-mail Único
@@ -53,22 +70,21 @@ public class UsuarioService {
 
         if (usuarioExistente != null) {
             boolean isMesmoUsuario = usuarioExistente.getCpf().equals(usuarioRequest.cpf());
-
             if (!isMesmoUsuario) {
                 throw new RuntimeException("Este e-mail já está em uso por outro usuário.");
             }
         }
 
-        // 2. Busca a empresa (Pode ser NULL se for cadastro inicial ou admin)
+        // 2. Busca a empresa
         Empresa empresa = null;
-        if (usuarioRequest.empresaId() != null && usuarioRequest.empresaId() > 0){
+        if (usuarioRequest.empresaId() != null){
             empresa = empresaRepository.findById(usuarioRequest.empresaId())
                     .orElseThrow(() -> new RuntimeException("Empresa informada não encontrada."));
         }
 
         Empresa finalEmpresa = empresa;
 
-        // 3. Upsert (Criar ou Atualizar)
+        // 3. Salva ou Atualiza
         var usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
                     u.setNome(usuarioRequest.nome());
@@ -79,7 +95,6 @@ public class UsuarioService {
                     u.setEmail(usuarioRequest.email());
                     u.setTelefone(usuarioRequest.telefone());
 
-                    // Se uma empresa foi passada, atualiza. Se não, mantém a antiga ou fica null.
                     if(finalEmpresa != null) {
                         u.setEmpresa(finalEmpresa);
                     }

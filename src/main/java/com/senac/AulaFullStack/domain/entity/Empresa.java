@@ -24,7 +24,7 @@ public class Empresa {
     private String nomeFantasia;
     private String razaoSocial;
     private String cnpj;
-    private String setor; // Ex: Varejo, Tecnologia (substitui descricao)
+    private String setor;
     private String emailCorporativo;
     private String telefone;
     private String cidade;
@@ -48,10 +48,12 @@ public class Empresa {
 
     public void atualizar(EmpresaRequestDto dto) {
         this.nomeFantasia = dto.nomeFantasia();
+        this.razaoSocial = dto.razaoSocial();
         this.setor = dto.setor();
+        this.emailCorporativo = dto.email();
         this.telefone = dto.telefone();
-        this.endereco = dto.endereco();
         this.cidade = dto.cidade();
+        this.endereco = dto.endereco();
     }
 
     public EmpresaResponseDto toDto() {

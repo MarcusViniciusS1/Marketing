@@ -20,12 +20,19 @@ export interface UsuarioRequest {
   empresaId?: number;
 }
 
-// DTOs para Senha
-export interface RecuperarSenhaDto { email: string; }
-export interface RegistrarNovaSenhaDto { email: string; senha: string; token: string; }
+export interface RecuperarSenhaDto {
+  email: string;
+}
 
+export interface RegistrarNovaSenhaDto {
+  email: string;
+  senha: string;
+  token: string;
+}
+
+// CORREÇÃO AQUI: Chama a rota específica para a empresa
 export async function buscarUsuariosDaEmpresa(): Promise<Usuario[]> {
-  const response = await api.get<Usuario[]>("/usuarios"); 
+  const response = await api.get<Usuario[]>("/usuarios/minha-empresa"); 
   return response.data;
 }
 
@@ -50,4 +57,9 @@ export async function recuperarSenha(data: RecuperarSenhaDto): Promise<void> {
 
 export async function registrarNovaSenha(data: RegistrarNovaSenhaDto): Promise<void> {
   await api.post("/auth/registrarnovasenha", data);
+}
+
+export async function vincularEmpresa(empresaId: number): Promise<Usuario> {
+  const response = await api.post<Usuario>(`/usuarios/vincularEmpresa?empresaId=${empresaId}`);
+  return response.data;
 }

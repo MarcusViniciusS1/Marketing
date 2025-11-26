@@ -1,0 +1,2 @@
+package com.senac.AulaFullStack.application.dto.empresa;
+public record EmpresaRequestDto(String nomeFantasia, String razaoSocial, String cnpj, String setor, String email, String telefone, String cidade, String endereco) {}

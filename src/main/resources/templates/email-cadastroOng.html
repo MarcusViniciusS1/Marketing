@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solicitação de cadastro de ONG</title>
+    <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          background-color: #ffffff;
+          color: #000000;
+          margin: 0;
+          padding: 0;
+        }
+
+        .container {
+          max-width: 600px;
+          margin: 30px auto;
+          background-color: #fff;
+          border: 2px solid #000;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+
+        .header {
+          background-color: #000;
+          color: #fff;
+          text-align: center;
+          padding: 20px;
+        }
+
+        .header h1 {
+          margin: 0;
+          font-size: 1.6em;
+          letter-spacing: 1px;
+        }
+
+        .image-section {
+          background-color: #fafafa;
+          text-align: center;
+          padding: 15px;
+        }
+
+        .image-section img {
+          max-width: 100%;
+          border-radius: 8px;
+        }
+
+        .content {
+          padding: 20px;
+          text-align: left;
+          line-height: 1.6;
+        }
+
+        .content p {
+          margin-bottom: 15px;
+        }
+
+        .footer {
+          border-top: 1px solid #ccc;
+          text-align: center;
+          padding: 15px;
+          font-size: 0.9em;
+          color: #555;
+        }
+
+        .footer span {
+          display: block;
+          margin-top: 8px;
+          color: #888;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Olá, o usuário  ${usuario} gostaria de cadastrar sua ong!</h1>
+    </div>
+
+
+    <div class="content">
+        <p>Olá, amigo(a) dos pets! 🐱</p>
+        <p>${mensagem}</p>
+
+        <p>Com carinho,<br>
+            <strong>Equipe do Sistema de Adoção</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>Enviado automaticamente pelo Sistema de Adoção de Pets.</p>
+        <span>Data de envio: ${dataEnvio}</span>
+    </div>
+</div>
+</body>
+</html>

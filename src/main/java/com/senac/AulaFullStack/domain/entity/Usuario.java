@@ -22,16 +22,24 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String nome;
+
+    @Column(unique = true)
     private String cpf;
+
     private String senha;
+
+    @Column(unique = true)
     private String email;
+
     private String telefone;
     private LocalDateTime dataCadastro;
-    private String role; // ADMIN (Plataforma), GERENTE (Empresa), USER (Funcionário)
+    private String role;
 
-    private String tokenSenha; // Campo recolocado para recuperação de senha
+    private String tokenSenha;
 
+    // OBRIGATÓRIO: nullable = true para permitir usuários sem empresa
     @ManyToOne
     @JoinColumn(name="empresa_id", nullable = true)
     private Empresa empresa;
@@ -43,7 +51,7 @@ public class Usuario implements UserDetails {
         this.senha = dto.senha();
         this.telefone = dto.telefone();
         this.role = dto.role();
-        this.empresa = empresa;
+        this.empresa = empresa; // Pode ser null
         this.dataCadastro = LocalDateTime.now();
     }
 

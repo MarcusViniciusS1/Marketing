@@ -48,25 +48,44 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
+        // 1. Validação de E-mail Único
+        var usuarioExistente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
 
+        if (usuarioExistente != null) {
+            boolean isMesmoUsuario = usuarioExistente.getCpf().equals(usuarioRequest.cpf());
+
+            if (!isMesmoUsuario) {
+                throw new RuntimeException("Este e-mail já está em uso por outro usuário.");
+            }
+        }
+
+        // 2. Busca a empresa (Pode ser NULL se for cadastro inicial ou admin)
         Empresa empresa = null;
-        if (usuarioRequest.empresaId() != null){
-            empresa = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
+        if (usuarioRequest.empresaId() != null && usuarioRequest.empresaId() > 0){
+            empresa = empresaRepository.findById(usuarioRequest.empresaId())
+                    .orElseThrow(() -> new RuntimeException("Empresa informada não encontrada."));
         }
 
         Empresa finalEmpresa = empresa;
+
+        // 3. Upsert (Criar ou Atualizar)
         var usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
                     u.setNome(usuarioRequest.nome());
-                    u.setSenha(usuarioRequest.senha());
+                    if (usuarioRequest.senha() != null && !usuarioRequest.senha().isEmpty()) {
+                        u.setSenha(usuarioRequest.senha());
+                    }
                     u.setRole(usuarioRequest.role());
                     u.setEmail(usuarioRequest.email());
                     u.setTelefone(usuarioRequest.telefone());
-                    if(finalEmpresa != null)
+
+                    // Se uma empresa foi passada, atualiza. Se não, mantém a antiga ou fica null.
+                    if(finalEmpresa != null) {
                         u.setEmpresa(finalEmpresa);
+                    }
 
                     return u;
-                }) .orElse(new Usuario(usuarioRequest, empresa));
+                }) .orElse(new Usuario(usuarioRequest, finalEmpresa));
 
         usuarioRepository.save(usuario);
         return usuario.toDtoResponse();
@@ -110,6 +129,8 @@ public class UsuarioService {
         if (usuario != null) {
             usuario.setSenha(registrarNovaSenhaDto.senha());
             usuarioRepository.save(usuario);
+        } else {
+            throw new RuntimeException("Token inválido ou expirado.");
         }
     }
 

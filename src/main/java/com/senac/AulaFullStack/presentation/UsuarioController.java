@@ -2,7 +2,6 @@ package com.senac.AulaFullStack.presentation;
 
 import com.senac.AulaFullStack.application.dto.usuario.*;
 import com.senac.AulaFullStack.application.services.UsuarioService;
-import com.senac.AulaFullStack.domain.entity.Usuario;
 import com.senac.AulaFullStack.domain.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,8 +46,9 @@ public class UsuarioController {
         try{
             var usuarioResponse = usuarioService.salvarUsuario(usuario);
             return ResponseEntity.ok(usuarioResponse);
-        }catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            // Retorna o erro específico (ex: "Email já cadastrado") para o front
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.ConfiguracaoAdminController">
+    <children>
+        <TextField fx:id="txtNome" layoutX="80.0" layoutY="77.0" prefHeight="25.0" prefWidth="346.0" />
+        <TextField fx:id="txtEmail" layoutX="80.0" layoutY="119.0" prefHeight="25.0" prefWidth="346.0" />
+        <TextField fx:id="txtSenha" layoutX="80.0" layoutY="161.0" prefHeight="25.0" prefWidth="346.0" />
+        <TextField fx:id="txtCpf" layoutX="80.0" layoutY="200.0" prefHeight="25.0" prefWidth="346.0" />
+        <TextField fx:id="txtTelefone" layoutX="80.0" layoutY="250.0" prefHeight="25.0" prefWidth="346.0" />
+
+        <Label layoutX="80.0" layoutY="60.0" text="Nome" />
+        <Label layoutX="83.0" layoutY="102.0" text="Email" />
+        <Label layoutX="84.0" layoutY="144.0" text="Senha" />
+        <Label layoutX="83.0" layoutY="186.0" text="CPF" />
+        <Label layoutX="83.0" layoutY="236.0" text="Telefone" />
+
+        <Button layoutX="318.0" layoutY="350.0" mnemonicParsing="false" onAction="#voltar" text="Voltar" />
+        <Button layoutX="171.0" layoutY="350.0" mnemonicParsing="false" onAction="#cadastrarAdmin" text="Cadastrar" />
+    </children>
+</AnchorPane>

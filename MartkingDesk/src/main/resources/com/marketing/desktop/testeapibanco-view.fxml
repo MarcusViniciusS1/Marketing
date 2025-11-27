@@ -1,17 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight=" 400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.TesteApiBancoController">
-   <children>
-      <Button layoutX="521.0" layoutY="340.0" mnemonicParsing="false" onAction="#voltar" text="Voltar" />
-      <Button layoutX="33.0" layoutY="340.0" mnemonicParsing="false" onAction="#consultarCep" text="Consultar" />
-      <TextField fx:id="txtCep" layoutX="89.0" layoutY="65.0" prefHeight="25.0" prefWidth="197.0" />
-      <TextField fx:id="txtEndereco" disable="true" editable="false" layoutX="89.0" layoutY="131.0" prefHeight="116.0" prefWidth="463.0" />
-      <Label layoutX="39.0" layoutY="69.0" text="CEP" />
-      <Label layoutX="25.0" layoutY="135.0" prefHeight="17.0" prefWidth="78.0" text="Endereço" />
+<VBox alignment="TOP_CENTER" spacing="20.0" style="-fx-background-color: #f0f2f5;" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.TesteApiBancoController">
 
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
 
-   </children>
-</AnchorPane>
+    <Label text="Consulta de Endereço (ViaCEP)" textFill="#34495e">
+        <font>
+            <Font name="System Bold" size="20.0" />
+        </font>
+    </Label>
+
+    <HBox alignment="CENTER" spacing="10.0" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);">
+        <Label text="CEP:" style="-fx-font-weight: bold;" />
+        <TextField fx:id="txtCep" promptText="00000000" prefWidth="150.0" style="-fx-padding: 8; -fx-background-radius: 4; -fx-border-color: #ddd; -fx-border-radius: 4;" />
+        <Button mnemonicParsing="false" onAction="#consultarCep" text="🔍 Consultar" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 4; -fx-cursor: hand;" />
+    </HBox>
+
+    <VBox spacing="5.0" alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+        <Label text="Endereço Encontrado:" textFill="#7f8c8d" />
+        <TextField fx:id="txtEndereco" disable="true" editable="false" alignment="TOP_LEFT"
+                   style="-fx-background-color: white; -fx-border-color: #bdc3c7; -fx-text-fill: #2c3e50; -fx-font-size: 13px;"
+                   prefHeight="100.0" prefWidth="540.0" />
+    </VBox>
+
+    <Button mnemonicParsing="false" onAction="#voltar" text="⬅ Voltar ao Menu"
+            style="-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-cursor: hand;" />
+
+</VBox>

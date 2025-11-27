@@ -8,24 +8,43 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.ConfiguracaoAdminController">
+<VBox alignment="CENTER" spacing="15.0" style="-fx-background-color: #ffffff;" prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.ConfiguracaoAdminController">
+
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+        <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
     </padding>
 
-    <Label text="Cadastro de Administrador" textFill="#333333">
+    <Label text="Novo Administrador" textFill="#2c3e50">
         <font>
-            <Font name="System Bold" size="18.0" />
+            <Font name="System Bold" size="22.0" />
         </font>
+        <VBox.margin>
+            <Insets bottom="10.0" />
+        </VBox.margin>
     </Label>
 
-    <TextField fx:id="txtNome" promptText="Nome Completo" />
-    <TextField fx:id="txtCpf" promptText="CPF" />
-    <TextField fx:id="txtEmail" promptText="E-mail" />
-    <TextField fx:id="txtTelefone" promptText="Telefone" />
+    <Label text="Preencha os dados para criar o acesso inicial" textFill="#95a5a6" wrapText="true" textAlignment="CENTER">
+        <VBox.margin>
+            <Insets bottom="20.0" />
+        </VBox.margin>
+    </Label>
 
-    <PasswordField fx:id="txtSenha" promptText="Senha" />
+    <TextField fx:id="txtNome" promptText="Nome Completo" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" />
 
-    <Button text="Cadastrar Admin" onAction="#cadastrarAdmin" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;" />
+    <TextField fx:id="txtCpf" promptText="CPF (apenas números)" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" />
+
+    <TextField fx:id="txtEmail" promptText="E-mail Corporativo" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" />
+
+    <TextField fx:id="txtTelefone" promptText="Telefone" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" />
+
+    <PasswordField fx:id="txtSenha" promptText="Senha Segura" style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #bdc3c7; -fx-border-radius: 5;" />
+
+    <Button text="CADASTRAR ADMIN" onAction="#cadastrarAdmin"
+            maxWidth="Infinity"
+            style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12; -fx-background-radius: 5; -fx-cursor: hand;">
+        <VBox.margin>
+            <Insets top="15.0" />
+        </VBox.margin>
+    </Button>
 
 </VBox>

@@ -20,7 +20,7 @@ public class EmpresaController {
 
     @Autowired private EmpresaService empresaService;
 
-    // --- LISTAGEM GERAL (Usa lógica do Service para filtrar) ---
+    // --- LISTAGEM GERAL (Usa lógica do Service para filtrar e SecurityConfig restringe acesso) ---
     @GetMapping
     public ResponseEntity<List<EmpresaResponseDto>> listar(@AuthenticationPrincipal UsuarioPrincipalDto user) {
         return ResponseEntity.ok(empresaService.listar(user));

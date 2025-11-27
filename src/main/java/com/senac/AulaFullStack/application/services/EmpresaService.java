@@ -20,18 +20,20 @@ public class EmpresaService {
     @Autowired private EmpresaRepository empresaRepository;
     @Autowired private UsuarioRepository usuarioRepository;
 
+    // LISTAGEM INTELIGENTE
     public List<EmpresaResponseDto> listar(UsuarioPrincipalDto principal) {
         Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
 
-        // ADMIN vê tudo
+        // Se for ADMIN, vê todas
         if ("ADMIN".equals(usuario.getRole())) {
             return empresaRepository.findAll().stream().map(Empresa::toDto).collect(Collectors.toList());
         }
 
-        // GERENTE/USER vê a sua
+        // Se for User/Gerente, vê apenas a sua (retorna lista com 1 item)
         if (usuario.getEmpresa() != null) {
             return List.of(usuario.getEmpresa().toDto());
         }
+
         return List.of();
     }
 
@@ -51,12 +53,13 @@ public class EmpresaService {
                 .orElseThrow(() -> new RuntimeException("Usuário logado não encontrado."));
 
         Empresa empresa = new Empresa(dto);
+        // saveAndFlush para garantir ID imediato e evitar erro de FK
         empresa = empresaRepository.saveAndFlush(empresa);
 
-        // Se não for Admin, vira GERENTE da empresa criada
+        // Vincula criador se não for Admin (ou vincula mesmo sendo admin, opcional)
         if (!"ADMIN".equals(usuario.getRole())) {
             usuario.setEmpresa(empresa);
-            usuario.setRole("GERENTE"); // <--- MUDANÇA AQUI (era ADMINONG)
+            usuario.setRole("GERENTE");
             usuarioRepository.save(usuario);
         }
 

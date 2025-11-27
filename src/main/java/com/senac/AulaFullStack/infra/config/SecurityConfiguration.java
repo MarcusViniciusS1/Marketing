@@ -25,26 +25,30 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests( auth -> auth
                         // --- PÚBLICAS ---
-                        .requestMatchers("/auth/**", "/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
 
                         // --- PROTEGIDAS ---
 
                         // Empresas:
+                        // - Cadastrar: Exige login para vincular o dono
                         .requestMatchers(HttpMethod.POST, "/empresas/cadastrar").authenticated()
-                        // Listagem liberada para qualquer logado (Service filtra)
-                        .requestMatchers(HttpMethod.GET, "/empresas").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/empresas/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/empresas/**").authenticated()
 
-                        // Apenas Admin pode DELETAR empresas
+                        // - Listar: Apenas ADMIN vê todas as empresas
+                        .requestMatchers(HttpMethod.GET, "/empresas").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/empresas/minha").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/empresas/minha").authenticated()
+
+                        // - Ações Administrativas
+                        .requestMatchers(HttpMethod.PUT, "/empresas/**").hasAnyRole("ADMIN", "GERENTE")
                         .requestMatchers(HttpMethod.DELETE, "/empresas/**").hasRole("ADMIN")
 
-                        // Usuários (Mudança aqui: GERENTE no lugar de ADMINONG)
-                        .requestMatchers("/usuarios/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/usuarios").permitAll() // Público para cadastro
-                        .requestMatchers(HttpMethod.POST, "/usuarios/**").hasAnyRole("ADMIN", "GERENTE") // Só Admin/Gerente cria interno
+                        // Usuários
+                        .requestMatchers(HttpMethod.GET , "/usuarios/minha-empresa").authenticated()
+                        .requestMatchers(HttpMethod.GET , "/usuarios").hasRole("ADMIN") // Só Admin lista todos
 
                         // Campanhas e Canais
                         .requestMatchers("/campanhas/**").authenticated()

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "empresas")
+@Table(name = "empresa") // Singular para bater com o banco
 public class Empresa {
 
     @Id
@@ -15,10 +15,13 @@ public class Empresa {
     private String nomeFantasia;
     private String razaoSocial;
     private String cnpj;
+
+    @Column(name = "email_corporativo") // Mapeia para a coluna certa do banco
     private String email;
+
     private String telefone;
 
-    @Column(name = "data_criacao")
+    @Column(name = "data_cadastro")
     private LocalDateTime dataCadastro;
 
     @OneToMany(mappedBy = "empresa")
@@ -26,12 +29,7 @@ public class Empresa {
 
     public Empresa() {}
 
-    public Empresa(Long id) {
-        this.id = id;
-    }
-
-    // --- Getters e Setters OBRIGATÓRIOS ---
-
+    // --- SETTERS MANUAIS NECESSÁRIOS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

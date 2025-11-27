@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.ConfiguracaoAdminController">
-    <children>
-        <TextField fx:id="txtNome" layoutX="80.0" layoutY="77.0" prefHeight="25.0" prefWidth="346.0" />
-        <TextField fx:id="txtEmail" layoutX="80.0" layoutY="119.0" prefHeight="25.0" prefWidth="346.0" />
-        <TextField fx:id="txtSenha" layoutX="80.0" layoutY="161.0" prefHeight="25.0" prefWidth="346.0" />
-        <TextField fx:id="txtCpf" layoutX="80.0" layoutY="200.0" prefHeight="25.0" prefWidth="346.0" />
-        <TextField fx:id="txtTelefone" layoutX="80.0" layoutY="250.0" prefHeight="25.0" prefWidth="346.0" />
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.marketing.desktop.controller.ConfiguracaoAdminController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
 
-        <Label layoutX="80.0" layoutY="60.0" text="Nome" />
-        <Label layoutX="83.0" layoutY="102.0" text="Email" />
-        <Label layoutX="84.0" layoutY="144.0" text="Senha" />
-        <Label layoutX="83.0" layoutY="186.0" text="CPF" />
-        <Label layoutX="83.0" layoutY="236.0" text="Telefone" />
+    <Label text="Cadastro de Administrador" textFill="#333333">
+        <font>
+            <Font name="System Bold" size="18.0" />
+        </font>
+    </Label>
 
-        <Button layoutX="318.0" layoutY="350.0" mnemonicParsing="false" onAction="#voltar" text="Voltar" />
-        <Button layoutX="171.0" layoutY="350.0" mnemonicParsing="false" onAction="#cadastrarAdmin" text="Cadastrar" />
-    </children>
-</AnchorPane>
+    <TextField fx:id="txtNome" promptText="Nome Completo" />
+    <TextField fx:id="txtCpf" promptText="CPF" />
+    <TextField fx:id="txtEmail" promptText="E-mail" />
+    <TextField fx:id="txtTelefone" promptText="Telefone" />
+
+    <PasswordField fx:id="txtSenha" promptText="Senha" />
+
+    <Button text="Cadastrar Admin" onAction="#cadastrarAdmin" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;" />
+
+</VBox>

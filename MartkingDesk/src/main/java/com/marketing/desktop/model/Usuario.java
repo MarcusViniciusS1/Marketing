@@ -12,16 +12,13 @@ public class Usuario {
     private Long id;
 
     private String nome;
-
-    @Column(unique = true)
     private String cpf;
-
-    @Column(unique = true)
     private String email;
-
     private String telefone;
     private String senha;
-    private String role; // Nome do campo deve bater com o controller (admin.setRole)
+
+    @Column(name = "role") // No banco é 'role', no Java Desktop chamamos de 'perfil' ou 'role'
+    private String perfil;
 
     @Column(name = "data_cadastro")
     private LocalDateTime dataCadastro;
@@ -32,8 +29,7 @@ public class Usuario {
 
     public Usuario() {}
 
-    // --- Getters e Setters OBRIGATÓRIOS ---
-
+    // --- SETTERS MANUAIS NECESSÁRIOS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -52,8 +48,11 @@ public class Usuario {
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public String getPerfil() { return perfil; }
+    public void setPerfil(String perfil) { this.perfil = perfil; }
+
+    // Método extra caso o código use setRole
+    public void setRole(String role) { this.perfil = role; }
 
     public LocalDateTime getDataCadastro() { return dataCadastro; }
     public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }

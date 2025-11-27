@@ -1,7 +1,7 @@
 package com.marketing.desktop.controller;
 
-import com.marketing.desktop.model.Empresa; // Verifique se o pacote é este ou domain.entity
-import com.marketing.desktop.model.Usuario; // Verifique se o pacote é este ou domain.entity
+import com.marketing.desktop.model.Empresa;
+import com.marketing.desktop.model.Usuario;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
@@ -13,22 +13,13 @@ import java.time.LocalDateTime;
 
 public class ConfiguracaoAdminController {
 
-    @FXML
-    private TextField txtNome;
+    @FXML private TextField txtNome;
+    @FXML private TextField txtCpf;
+    @FXML private TextField txtEmail;
+    @FXML private TextField txtTelefone;
+    @FXML private PasswordField txtSenha;
 
-    @FXML
-    private TextField txtCpf;
-
-    @FXML
-    private TextField txtEmail;
-
-    @FXML
-    private TextField txtTelefone;
-
-    @FXML
-    private PasswordField txtSenha;
-
-    // Factory do Hibernate (JPA)
+    // Garanta que "marketingPU" é o nome que está no seu persistence.xml
     private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("marketingPU");
 
     @FXML
@@ -38,49 +29,40 @@ public class ConfiguracaoAdminController {
         try {
             em.getTransaction().begin();
 
-            // ==================================================================================
-            // CORREÇÃO DO ERRO: Verificar/Criar a Empresa antes de criar o Usuário
-            // ==================================================================================
-
-            // Tenta buscar a empresa padrão (ID 1)
+            // 1. Tenta encontrar a empresa ID 1
             Empresa empresaPadrao = em.find(Empresa.class, 1L);
 
-            // Se não existir, CRIA ELA AGORA para evitar o erro de chave estrangeira
+            // 2. Se não existir, CRIA UMA NOVA (Isso corrige o erro de chave estrangeira)
             if (empresaPadrao == null) {
+                System.out.println("Empresa ID 1 não encontrada. Criando nova...");
                 empresaPadrao = new Empresa();
-                // Preencha os dados obrigatórios da sua entidade Empresa
-                empresaPadrao.setNomeFantasia("Minha Empresa Matriz");
-                empresaPadrao.setRazaoSocial("Empresa Admin Ltda");
+                empresaPadrao.setNomeFantasia("Empresa Matriz");
+                empresaPadrao.setRazaoSocial("Matriz Admin Ltda");
                 empresaPadrao.setCnpj("00.000.000/0001-00");
-                empresaPadrao.setEmail("admin@empresa.com");
-                empresaPadrao.setTelefone("0000000000");
+                empresaPadrao.setEmail("admin@sistema.com");
+                empresaPadrao.setTelefone("00000000");
                 empresaPadrao.setDataCadastro(LocalDateTime.now());
-                // Se tiver outros campos obrigatórios (NOT NULL) na Empresa, defina aqui!
 
-                em.persist(empresaPadrao); // Salva a empresa e gera o ID 1
+                em.persist(empresaPadrao);
             }
 
-            // ==================================================================================
-            // CRIAÇÃO DO USUÁRIO ADMIN
-            // ==================================================================================
-
+            // 3. Cria o usuário Admin
             Usuario admin = new Usuario();
             admin.setNome(txtNome.getText());
             admin.setCpf(txtCpf.getText());
             admin.setEmail(txtEmail.getText());
             admin.setTelefone(txtTelefone.getText());
-            admin.setSenha(txtSenha.getText()); // Em produção, use hash/criptografia!
-            admin.setRole("ADMIN"); // Define como Admin
+            admin.setSenha(txtSenha.getText());
+            admin.setPerfil("ADMIN"); // Define como ADMIN
             admin.setDataCadastro(LocalDateTime.now());
 
-            // VINCULA O USUÁRIO À EMPRESA QUE ACABAMOS DE GARANTIR QUE EXISTE
+            // 4. Vincula à empresa (que agora com certeza existe)
             admin.setEmpresa(empresaPadrao);
 
-            // Salva o usuário
             em.persist(admin);
-
             em.getTransaction().commit();
-            mostrarAlerta("Sucesso", "Usuário Admin e Empresa Padrão cadastrados!");
+
+            mostrarAlerta("Sucesso", "Admin cadastrado com sucesso!");
             limparCampos();
 
         } catch (Exception e) {

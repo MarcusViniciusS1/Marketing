@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSucesso } from "../../../redux/authSlice";
 import { LoginNovo, type LoginRequest } from "../../../services/authService";
+import { jwtDecode } from "jwt-decode"; // Opcional: Se o backend não mandar role no corpo, pode pegar do token
 
 export default function Login() {
     const navigator = useNavigate();
@@ -24,15 +25,27 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const loginResponse = await LoginNovo(formData);
-            const token = loginResponse.token;
+            // 1. Faz o Login
+            const response = await LoginNovo(formData);
+            const token = response.token;
 
-            if(token != null) {
+            if(token) {
+                // 2. Monta o objeto do usuário com os dados vindos do Backend
+                // IMPORTANTE: O backend precisa retornar 'role' e 'empresaId' (ou 'ongId') no JSON de resposta
                 const usuarioLogin = {
-                  usuario: { email: formData.email, nome: "" },
+                  usuario: { 
+                    email: formData.email, 
+                    nome: response.nome || "Usuário", // Se o backend mandar nome
+                    role: response.role,              // Essencial para o Sidebar
+                    empresaId: response.empresaId     // Essencial para identificar Super Admin (ID 1)
+                  },
                   token: token
                 };
+                
+                // 3. Salva no Redux
                 dispatch(loginSucesso(usuarioLogin));
+
+                // 4. Redireciona
                 navigator("/home");
             }
          } catch (error) {
@@ -46,7 +59,6 @@ export default function Login() {
     return (
         <>
             <div className="text-center mb-5">
-                {/* Logo com sombra suave */}
                 <div className="d-inline-flex justify-content-center align-items-center bg-light rounded-circle mb-4 shadow-sm" style={{ width: "90px", height: "90px" }}>
                     <img
                         src="/img/logo.png"

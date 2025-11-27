@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { cadastrarUsuario, buscarUsuarioLogado, buscarUsuarioPorId, type UsuarioRequest } from "../../../services/usuarioService";
+import { 
+  cadastrarUsuario, 
+  buscarUsuarioLogado, 
+  buscarUsuarioPorId, 
+  type UsuarioRequest 
+} from "../../../services/usuarioService";
 import { buscarTodasEmpresas } from "../../../services/empresaService";
 
+// CORREÇÃO AQUI: Adicionado 'default'
 export default function FormularioUsuario() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams(); // Se tiver ID, é edição
   const [loading, setLoading] = useState(false);
   
-  // Listas para selects
+  // Estado para a lista de empresas do Select
   const [empresas, setEmpresas] = useState<{id: number, nomeFantasia: string}[]>([]);
 
   const [form, setForm] = useState<UsuarioRequest>({
@@ -17,38 +23,42 @@ export default function FormularioUsuario() {
     email: "",
     senha: "",
     telefone: "",
-    role: "USER",
+    role: "USER", // Padrão: Funcionário
     empresaId: undefined
   });
 
   useEffect(() => {
-    carregarDadosIniciais();
+    carregarDados();
   }, [id]);
 
-  async function carregarDadosIniciais() {
+  async function carregarDados() {
     try {
-      // 1. Carregar lista de empresas para o select
+      // 1. Carrega as empresas disponíveis para o Select
       const listaEmpresas = await buscarTodasEmpresas();
       setEmpresas(listaEmpresas);
 
       if (id) {
-        // MODO EDIÇÃO: Carrega usuário existente
+        // --- MODO EDIÇÃO ---
         const usuario = await buscarUsuarioPorId(id);
         setForm({
           id: usuario.id,
           nome: usuario.nome,
-          cpf: "", // CPF geralmente não volta ou é protegido, verifique backend
+          cpf: "", // CPF protegido
           email: usuario.email,
-          senha: "", // Não preenche senha na edição
+          senha: "", // Senha vazia
           telefone: usuario.telefone,
           role: usuario.role,
           empresaId: usuario.empresaId
         });
       } else {
-        // MODO CRIAÇÃO: Tenta preencher empresa com a do logado por padrão
-        const userLogado = await buscarUsuarioLogado();
-        if (userLogado.empresaId) {
-          setForm(prev => ({ ...prev, empresaId: userLogado.empresaId }));
+        // --- MODO CRIAÇÃO ---
+        if (listaEmpresas.length === 1) {
+            setForm(prev => ({ ...prev, empresaId: listaEmpresas[0].id }));
+        } else {
+            const userLogado = await buscarUsuarioLogado();
+            if (userLogado.empresaId) {
+                setForm(prev => ({ ...prev, empresaId: userLogado.empresaId }));
+            }
         }
       }
     } catch (error) {
@@ -65,11 +75,18 @@ export default function FormularioUsuario() {
     setLoading(true);
 
     try {
-      await cadastrarUsuario(form); // O mesmo endpoint faz create/update no backend (upsert)
-      alert(id ? "Usuário atualizado!" : "Usuário cadastrado!");
+      const payload = { 
+          ...form, 
+          empresaId: form.empresaId ? Number(form.empresaId) : undefined 
+      };
+
+      await cadastrarUsuario(payload);
+      
+      alert(id ? "Usuário atualizado com sucesso!" : "Novo membro cadastrado com sucesso!");
       navigate("/usuarios");
     } catch (error: any) {
-      const msg = error.response?.data || "Erro ao salvar.";
+      console.error(error);
+      const msg = error.response?.data || "Erro ao salvar usuário. Verifique os dados.";
       alert(msg);
     } finally {
       setLoading(false);
@@ -79,61 +96,121 @@ export default function FormularioUsuario() {
   return (
     <div className="container mt-5">
       <div className="card shadow-sm border-0 p-4 mx-auto" style={{ maxWidth: "800px" }}>
-        <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-          <h3 className="fw-bold text-dark mb-0">{id ? "Editar Usuário" : "Novo Membro"}</h3>
+        <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+          <h3 className="fw-bold text-dark mb-0">
+            {id ? "Editar Usuário" : "Novo Membro"}
+          </h3>
+          <button onClick={() => navigate("/usuarios")} className="btn btn-outline-secondary btn-sm">
+            Voltar
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
             <div className="col-md-6">
               <label className="form-label fw-semibold">Nome Completo</label>
-              <input type="text" name="nome" className="form-control" value={form.nome} onChange={handleChange} required />
+              <input 
+                type="text" 
+                name="nome" 
+                className="form-control" 
+                value={form.nome} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <div className="col-md-6">
               <label className="form-label fw-semibold">CPF</label>
-              <input type="text" name="cpf" className="form-control" value={form.cpf} onChange={handleChange} required={!id} placeholder={id ? "Não alterável" : "000.000.000-00"} disabled={!!id} />
+              <input 
+                type="text" 
+                name="cpf" 
+                className="form-control" 
+                value={form.cpf} 
+                onChange={handleChange} 
+                required={!id} 
+                placeholder={id ? "Não alterável" : "000.000.000-00"} 
+                disabled={!!id} 
+              />
             </div>
 
             <div className="col-md-6">
-              <label className="form-label fw-semibold">E-mail</label>
-              <input type="email" name="email" className="form-control" value={form.email} onChange={handleChange} required />
+              <label className="form-label fw-semibold">E-mail Corporativo</label>
+              <input 
+                type="email" 
+                name="email" 
+                className="form-control" 
+                value={form.email} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <div className="col-md-6">
               <label className="form-label fw-semibold">Telefone</label>
-              <input type="text" name="telefone" className="form-control" value={form.telefone} onChange={handleChange} required />
+              <input 
+                type="text" 
+                name="telefone" 
+                className="form-control" 
+                value={form.telefone} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Senha {id && "(Deixe vazio para manter)"}</label>
-              <input type="password" name="senha" className="form-control" value={form.senha || ""} onChange={handleChange} required={!id} />
+              <label className="form-label fw-semibold">
+                Senha {id && <span className="text-muted fw-normal">(Deixe vazio para manter)</span>}
+              </label>
+              <input 
+                type="password" 
+                name="senha" 
+                className="form-control" 
+                value={form.senha || ""} 
+                onChange={handleChange} 
+                required={!id} 
+                placeholder="******"
+              />
             </div>
 
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Perfil</label>
-              <select name="role" className="form-select" value={form.role} onChange={handleChange}>
+              <label className="form-label fw-semibold">Perfil de Acesso</label>
+              <select 
+                name="role" 
+                className="form-select" 
+                value={form.role} 
+                onChange={handleChange}
+              >
                 <option value="USER">Funcionário</option>
-                <option value="ADMINONG">Gerente</option>
-                <option value="ADMIN">Super Admin</option>
+                <option value="GERENTE">Gerente</option>
+                <option value="ADMIN">Super Admin (Plataforma)</option>
               </select>
             </div>
 
             <div className="col-12">
-              <label className="form-label fw-semibold">Empresa</label>
-              <select name="empresaId" className="form-select" value={form.empresaId || ""} onChange={(e) => setForm({...form, empresaId: Number(e.target.value)})}>
+              <label className="form-label fw-semibold">Empresa Vinculada</label>
+              <select 
+                name="empresaId" 
+                className="form-select" 
+                value={form.empresaId || ""} 
+                onChange={handleChange}
+                required
+              >
                 <option value="">Selecione uma empresa...</option>
                 {empresas.map(e => (
-                  <option key={e.id} value={e.id}>{e.nomeFantasia} ({e.id})</option>
+                  <option key={e.id} value={e.id}>
+                    {e.nomeFantasia} (ID: {e.id})
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" className="btn btn-light border" onClick={() => navigate("/usuarios")}>Cancelar</button>
-            <button type="submit" className="btn btn-primary px-4" disabled={loading}>
-              {loading ? "Salvando..." : "Salvar"}
+          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <button type="button" className="btn btn-light me-2" onClick={() => navigate("/usuarios")}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn btn-success px-4" disabled={loading}>
+              {loading ? "Salvando..." : "Salvar Usuário"}
             </button>
           </div>
         </form>

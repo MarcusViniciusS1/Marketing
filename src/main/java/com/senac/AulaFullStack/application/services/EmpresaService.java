@@ -22,18 +22,17 @@ public class EmpresaService {
 
     public List<EmpresaResponseDto> listar(UsuarioPrincipalDto principal) {
         Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
-        // Admin vê tudo, outros veem a sua.
+
+        // ADMIN vê tudo
         if ("ADMIN".equals(usuario.getRole())) {
             return empresaRepository.findAll().stream().map(Empresa::toDto).collect(Collectors.toList());
         }
+
+        // GERENTE/USER vê a sua
         if (usuario.getEmpresa() != null) {
             return List.of(usuario.getEmpresa().toDto());
         }
         return List.of();
-    }
-
-    public EmpresaResponseDto buscarPorId(Long id) {
-        return empresaRepository.findById(id).map(Empresa::toDto).orElse(null);
     }
 
     public EmpresaResponseDto buscarPorUsuario(UsuarioPrincipalDto principal) {
@@ -42,24 +41,31 @@ public class EmpresaService {
         return usuario.getEmpresa().toDto();
     }
 
+    public EmpresaResponseDto buscarPorId(Long id) {
+        return empresaRepository.findById(id).map(Empresa::toDto).orElse(null);
+    }
+
     @Transactional
     public EmpresaResponseDto cadastrar(EmpresaRequestDto dto, UsuarioPrincipalDto principal) {
-        Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
-        Empresa empresa = new Empresa(dto);
-        empresa = empresaRepository.saveAndFlush(empresa); // Garante ID imediato
+        Usuario usuario = usuarioRepository.findById(principal.id())
+                .orElseThrow(() -> new RuntimeException("Usuário logado não encontrado."));
 
-        // Se não for admin, vincula o criador à empresa
+        Empresa empresa = new Empresa(dto);
+        empresa = empresaRepository.saveAndFlush(empresa);
+
+        // Se não for Admin, vira GERENTE da empresa criada
         if (!"ADMIN".equals(usuario.getRole())) {
             usuario.setEmpresa(empresa);
-            usuario.setRole("ADMINONG");
+            usuario.setRole("GERENTE"); // <--- MUDANÇA AQUI (era ADMINONG)
             usuarioRepository.save(usuario);
         }
+
         return empresa.toDto();
     }
 
     @Transactional
     public EmpresaResponseDto atualizar(Long id, EmpresaRequestDto dto) {
-        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
+        Empresa empresa = empresaRepository.findById(id).orElseThrow();
         empresa.atualizar(dto);
         return empresaRepository.save(empresa).toDto();
     }
@@ -67,7 +73,7 @@ public class EmpresaService {
     @Transactional
     public EmpresaResponseDto atualizar(EmpresaRequestDto dto, UsuarioPrincipalDto principal) {
         Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
-        if (usuario.getEmpresa() == null) throw new RuntimeException("Usuário sem empresa vinculada");
+        if (usuario.getEmpresa() == null) throw new RuntimeException("Sem empresa para editar.");
 
         Empresa empresa = usuario.getEmpresa();
         empresa.atualizar(dto);

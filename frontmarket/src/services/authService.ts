@@ -5,35 +5,14 @@ export interface LoginRequest {
     senha: string;
 }
 
-export interface LoginResponse{
+export interface LoginResponse {
     token: string;
-    role?: "ADMIN" | "USER"; // ajustar conforme o backend
-  userId?: number;
-  ongId?: number;
-
+    role?: string;
+    empresaId?: number;
+    nome?: string;
 }
 
-
- export async function LoginNovo(loginRequest : LoginRequest):Promise<LoginResponse>{
-         const response = await api.post<LoginResponse>( "/auth/login", loginRequest); 
-   return response.data;
-
- }
-
-
-// const login = async (loginRequest:LoginRequest): Promise<LoginResponse> => {
-    
-//      const response = await axios.post<LoginResponse>( "auth/login", loginRequest); 
-
-//     return response.data;
-// }
-
-
-
-
-
-// const authService = {
-//     login
-
-// }
-
+export async function LoginNovo(loginRequest : LoginRequest): Promise<LoginResponse>{
+    const response = await api.post<LoginResponse>( "/auth/login", loginRequest); 
+    return response.data;
+}

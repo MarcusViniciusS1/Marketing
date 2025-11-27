@@ -49,6 +49,7 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
+        // 1. Validação de duplicidade
         var existente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
         if (existente != null && (usuarioRequest.id() == null || !existente.getId().equals(usuarioRequest.id()))) {
             if (!existente.getCpf().equals(usuarioRequest.cpf())) {
@@ -56,23 +57,36 @@ public class UsuarioService {
             }
         }
 
+        // 2. Busca Empresa
         Empresa empresa = null;
         if (usuarioRequest.empresaId() != null) {
             empresa = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
         }
 
         Empresa finalEmpresa = empresa;
+
+        // 3. Salva/Atualiza Usuário
         Usuario usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
                     u.setNome(usuarioRequest.nome());
                     if(usuarioRequest.senha() != null && !usuarioRequest.senha().isEmpty()) u.setSenha(usuarioRequest.senha());
-                    u.setRole(usuarioRequest.role());
                     u.setEmail(usuarioRequest.email());
                     u.setTelefone(usuarioRequest.telefone());
                     if(finalEmpresa != null) u.setEmpresa(finalEmpresa);
                     return u;
                 })
                 .orElse(new Usuario(usuarioRequest, finalEmpresa));
+
+        // --- NOVO CRITÉRIO: ID 1 = SUPER ADMIN ---
+        if (finalEmpresa != null && finalEmpresa.getId() == 1L) {
+            usuario.setRole("ADMIN"); // Força privilégio máximo
+        } else if (usuario.getRole() == null || usuario.getRole().isEmpty()) {
+            // Se não for da empresa 1 e não tiver role, usa a do request ou padrão
+            usuario.setRole(usuarioRequest.role() != null ? usuarioRequest.role() : "USER");
+        } else {
+            // Mantém a role que veio do request (caso seja edição de permissão)
+            usuario.setRole(usuarioRequest.role());
+        }
 
         usuarioRepository.save(usuario);
         return usuario.toDtoResponse();
@@ -119,17 +133,22 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponseDto vincularUsuarioComEmpresa(Long empresaId, Usuario usuarioLogado) {
         Empresa empresa = empresaRepository.findById(empresaId).orElseThrow();
+
+        // Aplica a regra também no vínculo manual
+        if (empresa.getId() == 1L) {
+            usuarioLogado.setRole("ADMIN");
+        }
+
         usuarioLogado.setEmpresa(empresa);
         usuarioRepository.save(usuarioLogado);
         return usuarioLogado.toDtoResponse();
     }
 
-    // --- MÉTODO QUE FALTAVA ---
     public void deletar(Long id) {
         if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Usuário não encontrado para exclusão");
+            throw new RuntimeException("Usuário não encontrado");
         }
     }
 }

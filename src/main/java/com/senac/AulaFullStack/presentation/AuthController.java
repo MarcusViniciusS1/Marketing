@@ -1,18 +1,16 @@
 package com.senac.AulaFullStack.presentation;
 
-
 import com.senac.AulaFullStack.application.dto.login.LoginRequestDto;
 import com.senac.AulaFullStack.application.dto.login.LoginResponseDto;
 import com.senac.AulaFullStack.application.dto.login.RecuperarSenhaDto;
 import com.senac.AulaFullStack.application.dto.usuario.RegistrarNovaSenhaDto;
-import com.senac.AulaFullStack.application.dto.usuario.UsuarioPrincipalDto;
 import com.senac.AulaFullStack.application.services.TokenService;
 import com.senac.AulaFullStack.application.services.UsuarioService;
+import com.senac.AulaFullStack.domain.repository.UsuarioRepository; // Import necessário
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,30 +24,31 @@ public class AuthController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository; // Injeção do repositório
+
     @PostMapping("/login")
-    @Operation(summary = "Login", description = "Método responsável por efetuar o login de usuário")
+    @Operation(summary = "Login", description = "Método responsável por efetuar o login de usuário e retornar token com informações")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
         if (!usuarioService.validarSenha(request)) {
-            return ResponseEntity.badRequest().build(); // remover String pra manter padrão de não retornar nada que não seja DTO
+            return ResponseEntity.badRequest().build();
         }
 
         var token = tokenService.gerarToken(request);
-        return ResponseEntity.ok(new LoginResponseDto(token));
+        // Busca o usuário para extrair as informações adicionais
+        var usuario = usuarioRepository.findByEmail(request.email()).orElseThrow();
+
+        // Retorna o DTO completo com token, role, empresaId e nome
+        return ResponseEntity.ok(new LoginResponseDto(
+                token,
+                usuario.getRole(),
+                usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
+                usuario.getNome()
+        ));
     }
 
-
-
-//    @GetMapping("/recuperarsenha/envio")
-//    @Operation(summary = "Recuperar senha",description = "Método de recuperar senha")
-//    public ResponseEntity<?> recuperarSenhaEnvio(@AuthenticationPrincipal UsuarioPrincipalDto usuarioLogado){
-//
-//        usuarioService.recuperarSenhaEnvio(usuarioLogado);
-//        return ResponseEntity.ok("Código enviado com sucesso!");
-//
-//    }
-
     @PostMapping("/esquecisenha")
-    @Operation(summary = "Esqueci minha senha", description = "Método para recuperar senha Uusuário")
+    @Operation(summary = "Esqueci minha senha", description = "Método para recuperar senha Usuário")
     public ResponseEntity<Void> recuperarSenha(@RequestBody RecuperarSenhaDto recuperarSenhaDto){
         try {
             usuarioService.recuperarSenha(recuperarSenhaDto);
@@ -70,7 +69,4 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-
 }
-

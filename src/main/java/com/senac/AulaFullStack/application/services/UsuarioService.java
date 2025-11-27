@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random; // Necessário para gerar o código
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,6 +95,46 @@ public class UsuarioService {
         return usuario.toDtoResponse();
     }
 
+    // --- LÓGICA DE EDIÇÃO CORRIGIDA ---
+    @Transactional
+    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {
+        // Verifica se é ADMIN
+        boolean isAdmin = principal.autorizacao().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        // Se for Admin e mandou um ID, edita aquele ID. Se não, edita a si mesmo.
+        Long idAlvo = (isAdmin && dto.id() != null) ? dto.id() : principal.id();
+
+        Usuario usuario = usuarioRepository.findById(idAlvo)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        usuario.setNome(dto.nome());
+        usuario.setTelefone(dto.telefone());
+        usuario.setEmail(dto.email());
+
+        // Apenas Admin pode alterar Permissões e Empresa
+        if (isAdmin) {
+            if (dto.role() != null && !dto.role().isEmpty()) {
+                usuario.setRole(dto.role());
+            }
+
+            if (dto.empresaId() != null) {
+                Empresa empresa = empresaRepository.findById(dto.empresaId())
+                        .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
+                usuario.setEmpresa(empresa);
+
+                // Regra de negócio: Se for Empresa Matriz (ID 1), força ser Admin
+                if (empresa.getId() == 1L) {
+                    usuario.setRole("ADMIN");
+                }
+            }
+        }
+
+        usuarioRepository.save(usuario);
+        return usuario.toDtoResponse();
+    }
+    // ----------------------------------
+
     public List<UsuarioResponseDto> consultarPaginadoFiltrado(Long take, Long page, String filtro) {
         return usuarioRepository.findAll().stream()
                 .sorted(Comparator.comparing(Usuario::getId).reversed())
@@ -102,40 +142,21 @@ public class UsuarioService {
                 .map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
-    // --- MÉTODO CORRIGIDO ---
     public void recuperarSenha(RecuperarSenhaDto dto) {
         var usuario = usuarioRepository.findByEmail(dto.email()).orElse(null);
-
         if (usuario != null){
-            // Gera código aleatório de 6 dígitos
             String codigo = String.format("%06d", new Random().nextInt(999999));
-
             usuario.setTokenSenha(codigo);
             usuarioRepository.save(usuario);
-
-            // ENVIA O E-MAIL (Isso estava faltando)
-            iEnvioEmail.enviarEmailComTemplate(usuario.getEmail(), "Recuperação de Senha - MktManager", codigo);
+            iEnvioEmail.enviarEmailComTemplate(usuario.getEmail(), "Recuperação de Senha", codigo);
         }
     }
 
     public void registrarNovaSenha(RegistrarNovaSenhaDto dto) {
-        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token())
-                .orElseThrow(() -> new RuntimeException("Token inválido ou expirado."));
-
+        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token()).orElseThrow(() -> new RuntimeException("Token inválido"));
         usuario.setSenha(dto.senha());
-        usuario.setTokenSenha(null); // Invalida o token após o uso
+        usuario.setTokenSenha(null);
         usuarioRepository.save(usuario);
-    }
-    // ------------------------
-
-    @Transactional
-    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {
-        Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
-        usuario.setNome(dto.nome());
-        usuario.setTelefone(dto.telefone());
-        usuario.setEmail(dto.email());
-        usuarioRepository.save(usuario);
-        return usuario.toDtoResponse();
     }
 
     public UsuarioResponseDto buscarUsuarioLogado(UsuarioPrincipalDto principal) {

@@ -39,10 +39,15 @@ public class Usuario implements UserDetails {
 
     private String tokenSenha;
 
-    // OBRIGATÓRIO: nullable = true para permitir usuários sem empresa
     @ManyToOne
     @JoinColumn(name="empresa_id", nullable = true)
     private Empresa empresa;
+
+    // --- ADICIONE ESTE BLOCO AQUI ---
+    // Isso diz ao banco: "Se excluir o usuário, apague todos os tokens dele também"
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Token> tokens;
+    // --------------------------------
 
     public Usuario(UsuarioRequestDto dto, Empresa empresa) {
         this.nome = dto.nome();
@@ -51,7 +56,7 @@ public class Usuario implements UserDetails {
         this.senha = dto.senha();
         this.telefone = dto.telefone();
         this.role = dto.role();
-        this.empresa = empresa; // Pode ser null
+        this.empresa = empresa;
         this.dataCadastro = LocalDateTime.now();
     }
 

@@ -3,12 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { 
   cadastrarUsuario, 
   buscarUsuarioLogado, 
-  buscarUsuarioPorId, 
+  buscarUsuarioPorId,
+  editarUsuario, 
   type UsuarioRequest 
 } from "../../../services/usuarioService";
 import { buscarTodasEmpresas } from "../../../services/empresaService";
 
-// CORREÇÃO AQUI: Adicionado 'default'
 export default function FormularioUsuario() {
   const navigate = useNavigate();
   const { id } = useParams(); // Se tiver ID, é edição
@@ -34,8 +34,17 @@ export default function FormularioUsuario() {
   async function carregarDados() {
     try {
       // 1. Carrega as empresas disponíveis para o Select
-      const listaEmpresas = await buscarTodasEmpresas();
-      setEmpresas(listaEmpresas);
+      try {
+          const listaEmpresas = await buscarTodasEmpresas();
+          setEmpresas(listaEmpresas);
+          
+          // Se a lista tiver apenas 1 empresa (caso do Gerente), já seleciona ela automaticamente
+          if (listaEmpresas.length === 1 && !id) {
+              setForm(prev => ({ ...prev, empresaId: listaEmpresas[0].id }));
+          }
+      } catch (err) {
+          console.log("Não foi possível carregar lista de empresas (pode ser restrição de acesso).");
+      }
 
       if (id) {
         // --- MODO EDIÇÃO ---
@@ -43,22 +52,23 @@ export default function FormularioUsuario() {
         setForm({
           id: usuario.id,
           nome: usuario.nome,
-          cpf: "", // CPF protegido
+          cpf: "", // CPF protegido/oculto na edição
           email: usuario.email,
-          senha: "", // Senha vazia
+          senha: "", // Senha vazia para não alterar
           telefone: usuario.telefone,
           role: usuario.role,
           empresaId: usuario.empresaId
         });
       } else {
         // --- MODO CRIAÇÃO ---
-        if (listaEmpresas.length === 1) {
-            setForm(prev => ({ ...prev, empresaId: listaEmpresas[0].id }));
-        } else {
-            const userLogado = await buscarUsuarioLogado();
-            if (userLogado.empresaId) {
-                setForm(prev => ({ ...prev, empresaId: userLogado.empresaId }));
-            }
+        // Tenta pegar a empresa do usuário logado como fallback se a lista falhar ou estiver vazia
+        if (!form.empresaId) {
+            try {
+                const userLogado = await buscarUsuarioLogado();
+                if (userLogado.empresaId) {
+                    setForm(prev => ({ ...prev, empresaId: userLogado.empresaId }));
+                }
+            } catch (e) { console.error(e); }
         }
       }
     } catch (error) {
@@ -67,7 +77,8 @@ export default function FormularioUsuario() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,19 +86,26 @@ export default function FormularioUsuario() {
     setLoading(true);
 
     try {
+      // Garante que empresaId seja número ou undefined
       const payload = { 
           ...form, 
           empresaId: form.empresaId ? Number(form.empresaId) : undefined 
       };
 
-      await cadastrarUsuario(payload);
+      if (id) {
+        await editarUsuario(payload); // Usa put se for edição
+        alert("Usuário atualizado com sucesso!");
+      } else {
+        await cadastrarUsuario(payload); // Usa post se for novo
+        alert("Novo membro cadastrado com sucesso!");
+      }
       
-      alert(id ? "Usuário atualizado com sucesso!" : "Novo membro cadastrado com sucesso!");
       navigate("/usuarios");
     } catch (error: any) {
       console.error(error);
       const msg = error.response?.data || "Erro ao salvar usuário. Verifique os dados.";
-      alert(msg);
+      // Se o backend retornar objeto de erro, tenta stringify
+      alert(typeof msg === 'object' ? JSON.stringify(msg) : msg);
     } finally {
       setLoading(false);
     }
@@ -202,6 +220,9 @@ export default function FormularioUsuario() {
                   </option>
                 ))}
               </select>
+              <div className="form-text">
+                O usuário só verá dados desta empresa.
+              </div>
             </div>
           </div>
 

@@ -9,7 +9,9 @@ export interface Campanha {
   dataFim: string;
   status: 'PLANEJAMENTO' | 'ATIVA' | 'PAUSADA' | 'CONCLUIDA';
   canalNome: string;
+  canalId: number;
   empresaId: number;
+  empresaNome?: string; // Novo campo opcional
 }
 
 export interface CampanhaRequest {

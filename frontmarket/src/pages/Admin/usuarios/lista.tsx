@@ -13,7 +13,7 @@ export default function ListaUsuarios() {
   const userRole = useSelector((state: RootState) => state.auth.usuario?.role);
 
   // Regra: Apenas Admin e Gerente podem editar/excluir/adicionar
-  const podeGerenciar = userRole === 'ADMIN' || userRole === 'ADMINONG';
+  const podeGerenciar = userRole === 'ADMIN' || userRole === 'GERENTE' || userRole === 'ADMINONG';
 
   useEffect(() => {
     carregarEquipe();
@@ -24,7 +24,7 @@ export default function ListaUsuarios() {
       const dados = await buscarUsuariosDaEmpresa();
       setUsuarios(dados);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao carregar equipe:", error);
     } finally {
       setLoading(false);
     }
@@ -39,6 +39,7 @@ export default function ListaUsuarios() {
         alert("Usuário removido!");
         carregarEquipe();
       } catch (error) {
+        console.error(error);
         alert("Erro: Você não tem permissão ou ocorreu um erro no servidor.");
       }
     }
@@ -47,13 +48,13 @@ export default function ListaUsuarios() {
   // Helpers visuais
   function getBadgeColor(role: string) {
       if (role === 'ADMIN') return 'bg-danger';
-      if (role === 'ADMINONG') return 'bg-primary';
+      if (role === 'GERENTE' || role === 'ADMINONG') return 'bg-primary';
       return 'bg-secondary';
   }
 
   function getRoleName(role: string) {
       if (role === 'ADMIN') return 'Super Admin';
-      if (role === 'ADMINONG') return 'Gerente';
+      if (role === 'GERENTE' || role === 'ADMINONG') return 'Gerente';
       return 'Funcionário';
   }
 

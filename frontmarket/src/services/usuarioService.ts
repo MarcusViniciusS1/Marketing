@@ -16,7 +16,7 @@ export interface UsuarioRequest {
   nome: string;
   cpf: string;
   email: string;
-  senha?: string;
+  senha?: string; // Senha é opcional na edição
   role: string;
   telefone: string;
   empresaId?: number;
@@ -35,7 +35,7 @@ export interface RegistrarNovaSenhaDto {
 // --- Funções de Usuário e Equipe ---
 
 export async function buscarUsuariosDaEmpresa(): Promise<Usuario[]> {
-  // Endpoint ajustado para listar equipe ou todos
+  // CORREÇÃO: Usa o endpoint inteligente que serve tanto para Admin quanto para Gerente
   const response = await api.get<Usuario[]>("/usuarios/minha-empresa"); 
   return response.data;
 }
@@ -51,22 +51,21 @@ export async function buscarUsuarioPorId(id: number | string): Promise<Usuario> 
 }
 
 export async function cadastrarUsuario(usuario: UsuarioRequest): Promise<Usuario> {
-  const response = await api.post<Usuario>("/usuarios", usuario);
+  // Garante que empresaId seja um número, se existir
+  const payload = {
+      ...usuario,
+      empresaId: usuario.empresaId ? Number(usuario.empresaId) : undefined
+  };
+  const response = await api.post<Usuario>("/usuarios", payload);
   return response.data;
 }
 
 export async function editarUsuario(usuario: UsuarioRequest): Promise<Usuario> {
-  // Se for edição via Admin passando ID, pode precisar de endpoint específico ou usar o mesmo
-  // Aqui usamos a lógica de "Upsert" do backend que verifica CPF/ID
-  const response = await api.post<Usuario>("/usuarios", usuario); 
+  const response = await api.put<Usuario>("/usuarios/editar", usuario); 
   return response.data;
 }
 
 export async function deletarUsuario(id: number): Promise<void> {
-  // O Backend precisa ter o DELETE implementado no Controller, se não tiver, não funcionará.
-  // Assumindo que você implementará ou já tem:
-  // @DeleteMapping("/{id}") public ResponseEntity<Void> deletar(@PathVariable Long id)...
-  // Se não tiver, adicione no UsuarioController.java
   await api.delete(`/usuarios/${id}`); 
 }
 

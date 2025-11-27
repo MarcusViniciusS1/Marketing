@@ -38,47 +38,49 @@ export default function CadastrarUsuario() {
       alert("Cadastro realizado! Faça login.");
       navigate("/");
     } catch (error: any) {
-      alert(error.response?.data || "Erro ao cadastrar.");
+      console.error(error);
+      const msg = error.response?.data || "Erro ao cadastrar.";
+      alert(msg);
     }
   };
 
   return (
     <>
       <div className="text-center mb-4">
-        <h3 className="fw-bold text-info">Criar conta</h3>
+        <h3 className="fw-bold text-dark">Criar conta</h3>
         <p className="text-secondary">Preencha os dados para continuar</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label className="form-label text-light">Nome</label>
-          <input type="text" name="nome" value={formData.nome} onChange={handleChange} className="form-control bg-dark text-light border-secondary" required />
+          <label className="form-label text-secondary small fw-bold">NOME</label>
+          <input type="text" name="nome" value={formData.nome} onChange={handleChange} className="form-control bg-light border-0 p-3" required placeholder="Seu nome completo" style={{borderRadius: "10px"}}/>
         </div>
 
         <div className="mb-3">
-          <label className="form-label text-light">CPF</label>
-          <input type="text" name="cpf" value={formData.cpf} onChange={handleChange} className="form-control bg-dark text-light border-secondary" placeholder="000.000.000-00" required />
+          <label className="form-label text-secondary small fw-bold">CPF</label>
+          <input type="text" name="cpf" value={formData.cpf} onChange={handleChange} className="form-control bg-light border-0 p-3" placeholder="000.000.000-00" required style={{borderRadius: "10px"}}/>
         </div>
 
         <div className="mb-3">
-          <label className="form-label text-light">Email</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} className="form-control bg-dark text-light border-secondary" required />
+          <label className="form-label text-secondary small fw-bold">EMAIL</label>
+          <input type="email" name="email" value={formData.email} onChange={handleChange} className="form-control bg-light border-0 p-3" placeholder="seu@email.com" required style={{borderRadius: "10px"}}/>
         </div>
 
         <div className="mb-3">
-          <label className="form-label text-light">Senha</label>
-          <input type="password" name="senha" value={formData.senha} onChange={handleChange} className="form-control bg-dark text-light border-secondary" required />
+          <label className="form-label text-secondary small fw-bold">SENHA</label>
+          <input type="password" name="senha" value={formData.senha} onChange={handleChange} className="form-control bg-light border-0 p-3" placeholder="******" required style={{borderRadius: "10px"}}/>
         </div>
 
         <div className="mb-3">
-          <label className="form-label text-light">Telefone</label>
-          <input type="text" name="telefone" value={formData.telefone} onChange={handleChange} className="form-control bg-dark text-light border-secondary" required />
+          <label className="form-label text-secondary small fw-bold">TELEFONE</label>
+          <input type="text" name="telefone" value={formData.telefone} onChange={handleChange} className="form-control bg-light border-0 p-3" placeholder="(00) 00000-0000" required style={{borderRadius: "10px"}}/>
         </div>
 
         {/* SELECT DE EMPRESAS */}
-        <div className="mb-3">
-          <label className="form-label text-light">Empresa</label>
-          <select name="empresaId" className="form-select bg-dark text-light border-secondary" value={formData.empresaId || ""} onChange={handleChange} required>
+        <div className="mb-4">
+          <label className="form-label text-secondary small fw-bold">EMPRESA</label>
+          <select name="empresaId" className="form-select bg-light border-0 p-3" value={formData.empresaId || ""} onChange={handleChange} required style={{borderRadius: "10px"}}>
             <option value="">Selecione sua empresa...</option>
             {empresas.map(e => (
               <option key={e.id} value={e.id}>{e.nomeFantasia}</option>
@@ -86,9 +88,13 @@ export default function CadastrarUsuario() {
           </select>
         </div>
 
-        <button type="submit" className="btn btn-info w-100 fw-bold mt-2">
+        <button type="submit" className="btn btn-primary w-100 py-3 fw-bold shadow-sm" style={{borderRadius: "12px"}}>
           Cadastrar
         </button>
+        
+        <div className="text-center mt-3">
+            <button type="button" onClick={() => navigate("/")} className="btn btn-link text-decoration-none text-muted">Voltar ao Login</button>
+        </div>
       </form>
     </>
   );

@@ -22,7 +22,7 @@ export default function ListaEmpresas() {
   }
 
   async function handleDelete(id: number) {
-    if (window.confirm("⚠️ Atenção: Excluir uma empresa removerá também seus usuários e campanhas. Tem certeza que deseja continuar?")) {
+    if (window.confirm("⚠️ Atenção: Excluir uma empresa removerá também seus usuários e campanhas. Tem certeza?")) {
       try {
         await deletarEmpresa(id);
         alert("Empresa excluída com sucesso!");
@@ -51,7 +51,8 @@ export default function ListaEmpresas() {
             <table className="table table-hover align-middle mb-0">
               <thead className="table-light">
                 <tr>
-                  <th className="ps-4 py-3">Empresa</th>
+                  <th className="ps-4 py-3">ID</th>
+                  <th>Empresa</th>
                   <th>CNPJ</th>
                   <th>Setor</th>
                   <th>Contato</th>
@@ -60,11 +61,12 @@ export default function ListaEmpresas() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="text-center py-5 text-muted">Carregando...</td></tr>
+                  <tr><td colSpan={6} className="text-center py-5 text-muted">Carregando...</td></tr>
                 ) : empresas.length > 0 ? (
                   empresas.map((e) => (
                     <tr key={e.id}>
-                      <td className="ps-4 fw-bold text-dark">{e.nomeFantasia}</td>
+                      <td className="ps-4 fw-bold text-secondary">#{e.id}</td>
+                      <td className="fw-bold text-dark">{e.nomeFantasia}</td>
                       <td>{e.cnpj}</td>
                       <td><span className="badge bg-light text-dark border">{e.setor}</span></td>
                       <td>
@@ -75,12 +77,9 @@ export default function ListaEmpresas() {
                       </td>
                       <td className="text-end pe-4">
                         <div className="d-flex justify-content-end gap-2">
-                          {/* BOTÃO EDITAR: CINZA (SECONDARY) */}
                           <Link to={`/empresa/${e.id}/editar`} className="btn btn-sm btn-outline-secondary px-3">
                             Editar
                           </Link>
-                          
-                          {/* BOTÃO EXCLUIR: VERMELHO (DANGER) */}
                           <button 
                             onClick={() => handleDelete(e.id)} 
                             className="btn btn-sm btn-outline-danger px-3"
@@ -92,7 +91,7 @@ export default function ListaEmpresas() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={5} className="text-center py-5 text-muted">Nenhuma empresa cadastrada.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-5 text-muted">Nenhuma empresa cadastrada.</td></tr>
                 )}
               </tbody>
             </table>

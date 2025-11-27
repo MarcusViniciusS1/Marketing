@@ -15,15 +15,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/empresas")
-@Tag(name = "Gestão de Empresas", description = "Gerenciamento corporativo")
+@Tag(name = "Gestão de Empresas", description = "Gerenciamento Unificado")
 public class EmpresaController {
 
     @Autowired private EmpresaService empresaService;
 
-    @GetMapping("/minha")
-    public ResponseEntity<EmpresaResponseDto> buscarMinhaEmpresa(@AuthenticationPrincipal UsuarioPrincipalDto user) {
-        EmpresaResponseDto dto = empresaService.buscarPorUsuario(user);
-        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.noContent().build();
+    @GetMapping
+    @Operation(summary = "Listar empresas (Regra inteligente por perfil)")
+    public ResponseEntity<List<EmpresaResponseDto>> listar(@AuthenticationPrincipal UsuarioPrincipalDto user) {
+        return ResponseEntity.ok(empresaService.listar(user));
     }
 
     @PostMapping("/cadastrar")
@@ -31,19 +31,8 @@ public class EmpresaController {
         try {
             return ResponseEntity.ok(empresaService.cadastrar(dto, user));
         } catch (Exception e) {
-            e.printStackTrace(); // Mostra o erro no console do servidor
-            return ResponseEntity.badRequest().body("Erro ao cadastrar empresa: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    @PutMapping("/minha")
-    public ResponseEntity<EmpresaResponseDto> atualizar(@RequestBody EmpresaRequestDto dto, @AuthenticationPrincipal UsuarioPrincipalDto user) {
-        return ResponseEntity.ok(empresaService.atualizar(dto, user));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<EmpresaResponseDto>> listarTodas() {
-        return ResponseEntity.ok(empresaService.listarTodas());
     }
 
     @GetMapping("/{id}")
@@ -53,8 +42,8 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmpresaResponseDto> atualizarPorId(@PathVariable Long id, @RequestBody EmpresaRequestDto dto) {
-        return ResponseEntity.ok(empresaService.atualizarPorId(id, dto));
+    public ResponseEntity<EmpresaResponseDto> atualizar(@PathVariable Long id, @RequestBody EmpresaRequestDto dto) {
+        return ResponseEntity.ok(empresaService.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")

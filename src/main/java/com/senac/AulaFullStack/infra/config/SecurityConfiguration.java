@@ -28,15 +28,15 @@ public class SecurityConfiguration {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Se quiser cadastro público sem login, mude para permitAll()
-                        // Aqui assumimos que o usuário já criou conta e está logado para criar a empresa
+                        .requestMatchers(HttpMethod.POST, "/empresas/cadastrar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+
+                        // Liberado listar empresas publicamente para o Select do Cadastro
+                        .requestMatchers(HttpMethod.GET, "/empresas").permitAll()
 
                         // --- Rotas Protegidas ---
 
                         // Empresas
-                        .requestMatchers(HttpMethod.POST, "/empresas/cadastrar").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/empresas").authenticated() // Liberado listagem para todos logados (debug)
                         .requestMatchers(HttpMethod.GET, "/empresas/minha").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/empresas/minha").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/empresas/**").hasAnyRole("ADMIN", "ADMINONG")
@@ -44,7 +44,8 @@ public class SecurityConfiguration {
 
                         // Usuários
                         .requestMatchers(HttpMethod.GET , "/usuarios/minha-empresa").authenticated()
-                        .requestMatchers(HttpMethod.GET , "/usuarios").authenticated() // Liberado listagem geral (debug)
+                        .requestMatchers(HttpMethod.GET , "/usuarios").authenticated()
+                        .requestMatchers(HttpMethod.PUT , "/usuarios/editar").authenticated() // Edição de usuário
 
                         // Campanhas e Canais
                         .requestMatchers("/campanhas/**").authenticated()

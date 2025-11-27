@@ -1,14 +1,13 @@
-import React, { useEffect, useState, type FormEvent } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSucesso } from "../../../redux/authSlice";
 import { LoginNovo, type LoginRequest } from "../../../services/authService";
+
 export default function Login() {
-
-          const navigator = useNavigate();
-            const dispatch = useDispatch();
-
-
+    const navigator = useNavigate();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState<LoginRequest>({
         email: '',
@@ -17,128 +16,104 @@ export default function Login() {
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value,
-
-
-        }));
+        setFormData(prevState => ({ ...prevState, [name]: value }));
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setLoading(true);
 
         try {
             const loginResponse = await LoginNovo(formData);
             const token = loginResponse.token;
 
-            if(token !=null) {
-        const usuarioLogin = {
-          usuario: { email: formData.email, nome: "" },
-          token: token
-        };
-        
-        dispatch(loginSucesso(usuarioLogin));
-
-                navigator("/home")
+            if(token != null) {
+                const usuarioLogin = {
+                  usuario: { email: formData.email, nome: "" },
+                  token: token
+                };
+                dispatch(loginSucesso(usuarioLogin));
+                navigator("/home");
             }
-
-
-
-
-
-
-        // EXEMPLO DE FETCH
-        //     const response = await fetch(API_URL + "auth/login", {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //      body: JSON.stringify(formData)
-        //      });
-
-        //        if(!response.ok){
-        //         throw new Error("Erro ao logar o usuário!")
-        //        }
-
-        //        const data : LoginResponse = await response.json();
-        //        console.log(data.token);
-
-
          } catch (error) {
-        console.error;
-              alert("E-mail ou senha inválidos!");
-
+            console.error(error);
+            alert("E-mail ou senha inválidos!");
+         } finally {
+            setLoading(false);
          }
-
     }
 
-
-
-return (
-    <>
-     <div className="text-center mb-4">
-          <img
-            src="/img/logo.png"
-            alt="Logo"
-            className="mb-3"
-            style={{ width: "100px", height: "100px" }}
-          />
-          
-        </div>
-<h3 className="fw-bold text-info">Bem-vindo</h3>
-          <p className="text-secondary">Faça login para continuar</p>
-    <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-            <label htmlFor="email" className="form-label text-light">Email</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="form-control bg-dark text-light border-secondary"
-                placeholder="seu@email.com"
-                required
+    return (
+        <>
+            <div className="text-center mb-5">
+                {/* Logo com sombra suave */}
+                <div className="d-inline-flex justify-content-center align-items-center bg-light rounded-circle mb-4 shadow-sm" style={{ width: "90px", height: "90px" }}>
+                    <img
+                        src="/img/logo.png"
+                        alt="Logo"
+                        className="img-fluid"
+                        style={{ width: "50px" }}
+                    />
+                </div>
                 
-            />
-        </div>
+                <h2 className="fw-bold text-dark mb-1" style={{ letterSpacing: "-0.5px" }}>Bem-vindo de volta!</h2>
+                <p className="text-muted">Insira seus dados para acessar o painel.</p>
+            </div>
 
-        <div className="mb-3">
-            <label htmlFor="password" className="form-label text-light">Senha</label>
-            <input
-                type="password"
-                id="password"
-                name="senha"
-                onChange={handleChange}
-                value={formData.senha}
-                className="form-control bg-dark text-light border-secondary"
-                placeholder="Digite sua senha"
-                required
-            />
-        </div>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <label htmlFor="email" className="form-label fw-semibold text-secondary small ms-1">E-mail</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="form-control form-control-lg bg-light border-0"
+                        placeholder="exemplo@email.com"
+                        style={{ borderRadius: "12px", fontSize: "0.95rem", padding: "12px 15px" }}
+                        required
+                    />
+                </div>
 
-  <div className="d-flex justify-content-end mb-3">
-          <Link to="/recuperarSenha" className="small text-info text-decoration-none">
-            Esqueceu sua senha?
-          </Link>
-        </div>
+                <div className="mb-4">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label htmlFor="password" className="form-label fw-semibold text-secondary small ms-1">Senha</label>
+                        <Link to="/recuperarSenha" className="small text-primary fw-bold text-decoration-none">
+                            Esqueceu a senha?
+                        </Link>
+                    </div>
+                    <input
+                        type="password"
+                        id="password"
+                        name="senha"
+                        onChange={handleChange}
+                        value={formData.senha}
+                        className="form-control form-control-lg bg-light border-0"
+                        placeholder="••••••••"
+                        style={{ borderRadius: "12px", fontSize: "0.95rem", padding: "12px 15px" }}
+                        required
+                    />
+                </div>
 
-        <button type="submit" className="btn btn-info w-100 fw-bold">
-            Entrar
-        </button>
+                <button 
+                    type="submit" 
+                    className="btn btn-primary w-100 py-3 mb-4 shadow-sm" 
+                    style={{ borderRadius: "12px", fontSize: "1rem", fontWeight: "600" }}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    ) : "Entrar na Plataforma"}
+                </button>
 
-        <div className="text-center mt-3">
-            <Link to="/usuarioCadastro" className="small text-info text-decoration-none">
-                Criar conta
-            </Link>
-        </div>
-
-    </form>
-    </>
-);
-
-
+                <div className="text-center">
+                    <span className="text-muted small">Não tem uma conta? </span>
+                    <Link to="/cadastro" className="text-primary fw-bold small text-decoration-none">
+                        Criar conta agora
+                    </Link>
+                </div>
+            </form>
+        </>
+    );
 }
- 

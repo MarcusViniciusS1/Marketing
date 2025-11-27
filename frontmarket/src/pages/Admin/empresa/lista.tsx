@@ -15,14 +15,14 @@ export default function ListaEmpresas() {
       const dados = await buscarTodasEmpresas();
       setEmpresas(dados);
     } catch (error) {
-      console.error("Erro ao carregar empresas:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id: number) {
-    if (window.confirm("ATENÇÃO: Excluir uma empresa removerá também todos os seus usuários e campanhas. Deseja continuar?")) {
+    if (window.confirm("⚠️ Atenção: Excluir uma empresa removerá também seus usuários e campanhas. Tem certeza que deseja continuar?")) {
       try {
         await deletarEmpresa(id);
         alert("Empresa excluída com sucesso!");
@@ -40,7 +40,7 @@ export default function ListaEmpresas() {
           <h3 className="fw-bold text-dark mb-1">Gestão de Empresas</h3>
           <p className="text-muted mb-0">Administração de todos os tenants da plataforma.</p>
         </div>
-        <Link to="/empresa/nova" className="btn btn-primary shadow-sm d-flex align-items-center">
+        <Link to="/empresa/nova" className="btn btn-primary shadow-sm d-flex align-items-center px-4 py-2">
           <i className="bi bi-plus-lg me-2"></i> Nova Empresa
         </Link>
       </div>
@@ -60,26 +60,34 @@ export default function ListaEmpresas() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="text-center py-5">Carregando...</td></tr>
+                  <tr><td colSpan={5} className="text-center py-5 text-muted">Carregando...</td></tr>
                 ) : empresas.length > 0 ? (
                   empresas.map((e) => (
                     <tr key={e.id}>
-                      <td className="ps-4 fw-semibold text-dark">{e.nomeFantasia}</td>
+                      <td className="ps-4 fw-bold text-dark">{e.nomeFantasia}</td>
                       <td>{e.cnpj}</td>
                       <td><span className="badge bg-light text-dark border">{e.setor}</span></td>
                       <td>
-                        <div className="d-flex flex-column small">
-                          <span>{e.email}</span>
-                          <span className="text-muted">{e.telefone}</span>
+                        <div className="d-flex flex-column">
+                          <small className="text-dark fw-semibold">{e.email}</small>
+                          <small className="text-muted">{e.telefone}</small>
                         </div>
                       </td>
                       <td className="text-end pe-4">
-                        <Link to={`/empresa/${e.id}/editar`} className="btn btn-sm btn-outline-secondary me-2" title="Editar">
-                          <i className="bi bi-pencil"></i>
-                        </Link>
-                        <button onClick={() => handleDelete(e.id)} className="btn btn-sm btn-outline-danger" title="Excluir">
-                          <i className="bi bi-trash"></i>
-                        </button>
+                        <div className="d-flex justify-content-end gap-2">
+                          {/* BOTÃO EDITAR: CINZA (SECONDARY) */}
+                          <Link to={`/empresa/${e.id}/editar`} className="btn btn-sm btn-outline-secondary px-3">
+                            Editar
+                          </Link>
+                          
+                          {/* BOTÃO EXCLUIR: VERMELHO (DANGER) */}
+                          <button 
+                            onClick={() => handleDelete(e.id)} 
+                            className="btn btn-sm btn-outline-danger px-3"
+                          >
+                            Excluir
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

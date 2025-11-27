@@ -8,79 +8,83 @@ export default function Dashboard() {
     buscarCampanhas().then(setCampanhas).catch(console.error);
   }, []);
 
-  // Cálculos de KPI
   const totalOrcamento = campanhas.reduce((acc, c) => acc + c.orcamento, 0);
   const ativas = campanhas.filter(c => c.status === 'ATIVA').length;
-  const planejamento = campanhas.filter(c => c.status === 'PLANEJAMENTO').length;
 
-  return (
-    <div className="container-fluid p-4">
-      <h2 className="mb-4 fw-bold text-dark">Visão Geral</h2>
-      
-      {/* Cards de KPI */}
-      <div className="row g-4 mb-5">
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm text-white bg-primary h-100">
-            <div className="card-body">
-              <h6 className="card-title text-white-50 text-uppercase small fw-bold">Campanhas Ativas</h6>
-              <h2 className="display-5 fw-bold mb-0">{ativas}</h2>
-            </div>
-          </div>
+  // Componente de Card KPI Reutilizável
+  const KpiCard = ({ title, value, icon, color }: any) => (
+    <div className="col-md-4">
+      <div className="card h-100 p-3 d-flex flex-row align-items-center">
+        <div className="rounded-circle d-flex align-items-center justify-content-center me-3" 
+             style={{ width: 60, height: 60, backgroundColor: `${color}20`, color: color }}>
+          <i className={`bi ${icon} fs-2`}></i>
         </div>
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm text-white bg-success h-100">
-            <div className="card-body">
-              <h6 className="card-title text-white-50 text-uppercase small fw-bold">Budget Total</h6>
-              <h2 className="display-5 fw-bold mb-0">R$ {totalOrcamento.toLocaleString('pt-BR')}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card border-0 shadow-sm bg-white h-100">
-            <div className="card-body">
-              <h6 className="card-title text-muted text-uppercase small fw-bold">Em Planejamento</h6>
-              <h2 className="display-5 fw-bold mb-0 text-dark">{planejamento}</h2>
-            </div>
-          </div>
+        <div>
+          <p className="text-muted mb-0 small text-uppercase fw-bold">{title}</p>
+          <h3 className="fw-bold mb-0 text-dark">{value}</h3>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Tabela Resumo */}
-      <div className="card border-0 shadow-sm">
-        <div className="card-header bg-white py-3">
-          <h5 className="mb-0 fw-bold">Últimas Campanhas</h5>
-        </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th className="ps-4">Nome</th>
-                  <th>Canal</th>
-                  <th>Status</th>
-                  <th>Término</th>
-                </tr>
-              </thead>
-              <tbody>
-                {campanhas.slice(0, 5).map((c) => (
-                  <tr key={c.id}>
-                    <td className="ps-4 fw-semibold">{c.nome}</td>
-                    <td><span className="badge bg-light text-dark border">{c.canalNome}</span></td>
-                    <td>
-                      <span className={`badge rounded-pill bg-${c.status === 'ATIVA' ? 'success' : 'secondary'}`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td>{new Date(c.dataFim).toLocaleDateString('pt-BR')}</td>
-                  </tr>
-                ))}
-                {campanhas.length === 0 && (
+  return (
+    <div>
+      {/* KPIs */}
+      <div className="row g-4 mb-4">
+        <KpiCard title="Campanhas Ativas" value={ativas} icon="bi-activity" color="#4318FF" />
+        <KpiCard title="Investimento Total" value={`R$ ${totalOrcamento.toLocaleString()}`} icon="bi-wallet2" color="#05CD99" />
+        <KpiCard title="Em Planejamento" value={campanhas.filter(c => c.status === 'PLANEJAMENTO').length} icon="bi-clipboard-data" color="#FFB547" />
+      </div>
+
+      <div className="row">
+        <div className="col-12">
+          <div className="card p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+               <h5 className="fw-bold m-0">Cronograma Recente</h5>
+               <button className="btn btn-light text-primary fw-bold rounded-pill px-4">
+                 <i className="bi bi-bar-chart-fill me-2"></i> Relatórios
+               </button>
+            </div>
+            
+            <div className="table-responsive">
+              <table className="table align-middle">
+                <thead>
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-muted">Nenhuma campanha encontrada.</td>
+                    <th className="text-secondary text-uppercase font-weight-bold text-xxs ps-4">Nome</th>
+                    <th className="text-secondary text-uppercase font-weight-bold text-xxs">Canal</th>
+                    <th className="text-secondary text-uppercase font-weight-bold text-xxs">Status</th>
+                    <th className="text-secondary text-uppercase font-weight-bold text-xxs">Término</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {campanhas.slice(0, 5).map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        <div className="d-flex px-2 py-1">
+                          <div className="d-flex flex-column justify-content-center">
+                            <h6 className="mb-0 text-sm fw-bold">{c.nome}</h6>
+                            <p className="text-xs text-muted mb-0">{c.objetivo}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <p className="text-xs font-weight-bold mb-0 text-dark">{c.canalNome}</p>
+                      </td>
+                      <td className="align-middle text-sm">
+                        <span className={`badge ${c.status === 'ATIVA' ? 'bg-success-subtle' : 'bg-secondary-subtle'}`}>
+                          {c.status}
+                        </span>
+                      </td>
+                      <td className="align-middle">
+                        <span className="text-secondary text-xs font-weight-bold">
+                          {new Date(c.dataFim).toLocaleDateString()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

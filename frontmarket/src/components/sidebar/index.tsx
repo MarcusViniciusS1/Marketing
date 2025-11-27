@@ -1,23 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import { useState } from "react";
-import type { RootState } from "../../redux/store"; // Ajuste o import conforme sua estrutura
 
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  // Pegar role do usuário para mostrar menu de Admin (Opcional)
-  // const role = useSelector((state: RootState) => state.auth.usuario?.role); 
-  
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isActive = (path: string) => 
-    location.pathname.startsWith(path) 
-      ? "bg-primary text-white fw-bold shadow-sm" 
-      : "text-white-50 hover-white";
+    location.pathname.startsWith(path) ? "active" : "";
 
   function handleLogout() {
     dispatch(logout());
@@ -25,132 +18,78 @@ export default function Sidebar() {
   }
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-
-  // Largura dinâmica
-  const width = isCollapsed ? "80px" : "260px";
+  const width = isCollapsed ? "80px" : "280px";
 
   return (
     <div 
-      className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" 
+      className="d-flex flex-column flex-shrink-0 p-3 text-white" 
       style={{ 
         width: width, 
-        minHeight: "100vh", 
-        transition: "width 0.3s ease-in-out",
+        height: "100vh", 
+        backgroundColor: "#111C44", // Cor corporativa escura
+        transition: "width 0.3s ease",
         overflow: "hidden",
         whiteSpace: "nowrap",
-        borderRight: "1px solid #333"
+        zIndex: 1000,
+        boxShadow: "4px 0 20px rgba(0,0,0,0.05)"
       }}
     >
-      {/* --- CABEÇALHO DO MENU --- */}
-      <div className="d-flex flex-column mb-4">
-        
-        {/* Botão Sanduíche (Alinhado à direita ou centro se fechado) */}
-        <div className={`d-flex w-100 ${isCollapsed ? 'justify-content-center' : 'justify-content-end'}`}>
-          <button 
-            onClick={toggleSidebar} 
-            className="btn btn-link text-white p-0 text-decoration-none"
-            title={isCollapsed ? "Expandir menu" : "Recolher menu"}
-          >
-            <i className="bi bi-list fs-3"></i>
-          </button>
-        </div>
-
-        {/* Logo Centralizada (Apenas ícone se fechado, ou ajustada) */}
-        <div className="d-flex justify-content-center mt-2" style={{ minHeight: "60px", alignItems: "center" }}>
-           <img 
-            src="/img/logo.png" 
-            alt="Logo" 
-            style={{ 
-                width: isCollapsed ? "40px" : "90px", 
-                height: "auto",
-                objectFit: "contain",
-                transition: "all 0.3s ease"
-            }} 
-          />
-        </div>
+      {/* Header Sidebar */}
+      <div className="d-flex align-items-center justify-content-between mb-5 mt-2 ps-2">
+        {!isCollapsed && (
+          <div className="d-flex align-items-center">
+             <div className="bg-white rounded-3 d-flex align-items-center justify-content-center me-2" style={{width: 40, height: 40}}>
+                <span className="fs-4">🚀</span>
+             </div>
+             <span className="fw-bold fs-5 letter-spacing-1">MKT<span style={{color: '#6AD2FF'}}>PRO</span></span>
+          </div>
+        )}
+        <button onClick={toggleSidebar} className="btn btn-link text-white-50 p-0 ms-auto">
+          <i className={`bi ${isCollapsed ? 'bi-list' : 'bi-chevron-left'} fs-4`}></i>
+        </button>
       </div>
 
-      <hr className="border-secondary" />
-
-      {/* --- LISTA DE NAVEGAÇÃO --- */}
+      {/* Menu */}
       <ul className="nav nav-pills flex-column mb-auto gap-2">
-        
-        {/* Dashboard */}
         <li className="nav-item">
-          <Link 
-            to="/dashboard" 
-            className={`nav-link ${isActive('/dashboard')} d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-            title="Dashboard"
-          >
-            <span className="fs-5">📊</span>
-            {!isCollapsed && <span className="ms-3">Dashboard</span>}
+          <Link to="/dashboard" className={`nav-link d-flex align-items-center py-3 ${isActive('/dashboard')} ${isCollapsed ? 'justify-content-center' : 'px-3'}`}>
+            <i className="bi bi-grid-1x2-fill fs-5"></i>
+            {!isCollapsed && <span className="ms-3 fw-medium">Dashboard</span>}
           </Link>
         </li>
-
-        {/* Campanhas */}
         <li>
-          <Link 
-            to="/campanhas" 
-            className={`nav-link ${isActive('/campanhas')} d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-            title="Campanhas"
-          >
-            <span className="fs-5">📢</span>
-            {!isCollapsed && <span className="ms-3">Campanhas</span>}
+          <Link to="/campanhas" className={`nav-link d-flex align-items-center py-3 ${isActive('/campanhas')} ${isCollapsed ? 'justify-content-center' : 'px-3'}`}>
+            <i className="bi bi-megaphone-fill fs-5"></i>
+            {!isCollapsed && <span className="ms-3 fw-medium">Campanhas</span>}
           </Link>
         </li>
-
-        {/* Minha Empresa (Perfil) */}
         <li>
-          <Link 
-            to="/empresa" 
-            className={`nav-link ${isActive('/empresa')} d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-            title="Minha Empresa"
-          >
-            <span className="fs-5">🏢</span>
-            {!isCollapsed && <span className="ms-3">Minha Empresa</span>}
+          <Link to="/empresas" className={`nav-link d-flex align-items-center py-3 ${isActive('/empresas')} ${isCollapsed ? 'justify-content-center' : 'px-3'}`}>
+            <i className="bi bi-building-fill fs-5"></i>
+            {!isCollapsed && <span className="ms-3 fw-medium">Empresa</span>}
           </Link>
         </li>
-
-        {/* Equipe */}
         <li>
-          <Link 
-            to="/usuarios" 
-            className={`nav-link ${isActive('/usuarios')} d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-            title="Equipe"
-          >
-            <span className="fs-5">👥</span>
-            {!isCollapsed && <span className="ms-3">Equipe</span>}
+          <Link to="/usuarios" className={`nav-link d-flex align-items-center py-3 ${isActive('/usuarios')} ${isCollapsed ? 'justify-content-center' : 'px-3'}`}>
+            <i className="bi bi-people-fill fs-5"></i>
+            {!isCollapsed && <span className="ms-3 fw-medium">Equipe</span>}
           </Link>
         </li>
-
-        {/* --- ÁREA ADMINISTRATIVA (Ex: Só aparece para Admins) --- */}
-        {/* Você pode envolver isso numa verificação: if (role === 'ADMIN') { ... } */}
-        
-        {!isCollapsed && <div className="text-uppercase text-white-50 mt-3 mb-2 small fw-bold ps-3" style={{fontSize: "0.75rem"}}>Administração</div>}
-        
-        <li>
-          <Link 
-            to="/empresas" 
-            className={`nav-link ${isActive('/empresas')} d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-            title="Todas as Empresas"
-          >
-            <span className="fs-5">🌎</span>
-            {!isCollapsed && <span className="ms-3">Todas Empresas</span>}
-          </Link>
-        </li>
-
       </ul>
 
-      <hr className="border-secondary" />
+      {/* Admin Footer */}
+      {!isCollapsed && (
+        <div className="mt-auto mb-3 px-3">
+            <div className="p-3 rounded-4" style={{background: 'linear-gradient(135deg, #868CFF 0%, #4318FF 100%)'}}>
+                <small className="text-white-50 d-block mb-1">Logado como</small>
+                <div className="fw-bold">Admin</div>
+            </div>
+        </div>
+      )}
 
-      {/* --- LOGOUT --- */}
-      <button 
-        onClick={handleLogout} 
-        className={`btn btn-outline-danger w-100 mt-auto d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}
-        title="Sair"
-      >
-        <span className="fs-5">🚪</span>
-        {!isCollapsed && <span className="ms-2">Sair</span>}
+      <button onClick={handleLogout} className={`btn btn-link text-danger text-decoration-none d-flex align-items-center mt-2 ${isCollapsed ? 'justify-content-center' : 'px-3'}`}>
+        <i className="bi bi-box-arrow-left fs-5"></i>
+        {!isCollapsed && <span className="ms-3 fw-medium">Sair</span>}
       </button>
     </div>
   );

@@ -1,0 +1,140 @@
+/* Importação da Fonte Inter (Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #4318FF; /* Indigo Vibrante */
+  --secondary-color: #6AD2FF; /* Cyan Suave */
+  --dark-bg: #111C44; /* Azul Noturno Profundo (Sidebar) */
+  --light-bg: #F4F7FE; /* Cinza Azulado Claro (Fundo Geral) */
+  --text-main: #2B3674; /* Texto Escuro */
+  --text-muted: #A3AED0; /* Texto Secundário */
+  --card-bg: #FFFFFF;
+  --shadow-soft: 0px 18px 40px rgba(112, 144, 176, 0.12);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--light-bg);
+  color: var(--text-main);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- CUSTOM SCROLLBAR --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cfd8dc;
+  border-radius: 10px;
+}
+
+/* --- CARDS MODERNOS --- */
+.card {
+  border: none;
+  border-radius: 20px; /* Bordas bem arredondadas */
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px); /* Leve flutuação no hover */
+}
+
+/* --- BOTÕES --- */
+.btn {
+  border-radius: 12px;
+  padding: 10px 24px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--primary-color) 0%, #6a4df7 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(67, 24, 255, 0.4);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(67, 24, 255, 0.6);
+  transform: scale(1.02);
+}
+
+.btn-outline-danger {
+  border: 1px solid #ff5b5b;
+  color: #ff5b5b;
+  background: transparent;
+}
+.btn-outline-danger:hover {
+  background: #ff5b5b;
+  color: white;
+}
+
+/* --- TABELAS --- */
+.table-responsive {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: #F7F9FB;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #E9EDF7;
+  padding: 16px;
+}
+
+.table tbody td {
+  padding: 16px;
+  color: var(--text-main);
+  border-bottom: 1px solid #F4F7FE;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+/* --- BADGES --- */
+.badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.bg-success-subtle {
+  background-color: #E6FBF3 !important;
+  color: #01B574 !important;
+}
+
+.bg-primary-subtle {
+  background-color: #EBEBFF !important;
+  color: var(--primary-color) !important;
+}
+
+/* --- SIDEBAR (Transições) --- */
+.nav-link {
+  border-radius: 10px;
+  margin-bottom: 5px;
+  transition: all 0.2s;
+  color: var(--text-muted) !important;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+
+.nav-link.active {
+  background: linear-gradient(90deg, var(--primary-color) 0%, #6a4df7 100%);
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

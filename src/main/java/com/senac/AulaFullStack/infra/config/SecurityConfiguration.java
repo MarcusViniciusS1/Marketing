@@ -24,32 +24,18 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests( auth -> auth
-                        // --- Rotas Públicas ---
+                        // PÚBLICAS (Login, Cadastro, Swagger)
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/empresas/cadastrar").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/empresas/cadastrar").permitAll() // Cadastro inicial de empresa
+                        .requestMatchers(HttpMethod.POST, "/usuarios").permitAll() // Cadastro de usuário
 
-                        // Liberado listar empresas publicamente para o Select do Cadastro
-                        .requestMatchers(HttpMethod.GET, "/empresas").permitAll()
-
-                        // --- Rotas Protegidas ---
-
-                        // Empresas
-                        .requestMatchers(HttpMethod.GET, "/empresas/minha").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/empresas/minha").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/empresas/**").hasAnyRole("ADMIN", "ADMINONG")
-                        .requestMatchers(HttpMethod.DELETE, "/empresas/**").hasRole("ADMIN")
-
-                        // Usuários
-                        .requestMatchers(HttpMethod.GET , "/usuarios/minha-empresa").authenticated()
-                        .requestMatchers(HttpMethod.GET , "/usuarios").authenticated()
-                        .requestMatchers(HttpMethod.PUT , "/usuarios/editar").authenticated() // Edição de usuário
-
-                        // Campanhas e Canais
+                        // PROTEGIDAS (Qualquer um logado pode acessar tudo por enquanto para destravar)
+                        .requestMatchers("/empresas/**").authenticated()
+                        .requestMatchers("/usuarios/**").authenticated()
                         .requestMatchers("/campanhas/**").authenticated()
-                        .requestMatchers("/canais").authenticated()
+                        .requestMatchers("/canais/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

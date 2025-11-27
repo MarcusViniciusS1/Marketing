@@ -15,26 +15,41 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/empresas")
-@Tag(name = "Gestão de Empresas", description = "Gerenciamento Unificado")
+@Tag(name = "Gestão de Empresas", description = "Gerenciamento corporativo")
 public class EmpresaController {
 
     @Autowired private EmpresaService empresaService;
 
+    // --- LISTAGEM GERAL (Usa lógica do Service para filtrar) ---
     @GetMapping
-    @Operation(summary = "Listar empresas (Regra inteligente por perfil)")
     public ResponseEntity<List<EmpresaResponseDto>> listar(@AuthenticationPrincipal UsuarioPrincipalDto user) {
         return ResponseEntity.ok(empresaService.listar(user));
     }
 
+    // --- DADOS DA MINHA EMPRESA ---
+    @GetMapping("/minha")
+    public ResponseEntity<EmpresaResponseDto> buscarMinhaEmpresa(@AuthenticationPrincipal UsuarioPrincipalDto user) {
+        EmpresaResponseDto dto = empresaService.buscarPorUsuario(user);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/minha")
+    public ResponseEntity<EmpresaResponseDto> atualizarMinha(@RequestBody EmpresaRequestDto dto, @AuthenticationPrincipal UsuarioPrincipalDto user) {
+        return ResponseEntity.ok(empresaService.atualizar(dto, user));
+    }
+
+    // --- CADASTRO ---
     @PostMapping("/cadastrar")
     public ResponseEntity<?> cadastrar(@RequestBody EmpresaRequestDto dto, @AuthenticationPrincipal UsuarioPrincipalDto user) {
         try {
             return ResponseEntity.ok(empresaService.cadastrar(dto, user));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Erro ao cadastrar: " + e.getMessage());
         }
     }
 
+    // --- ADMINISTRAÇÃO POR ID ---
     @GetMapping("/{id}")
     public ResponseEntity<EmpresaResponseDto> buscarPorId(@PathVariable Long id) {
         EmpresaResponseDto dto = empresaService.buscarPorId(id);
@@ -42,7 +57,7 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmpresaResponseDto> atualizar(@PathVariable Long id, @RequestBody EmpresaRequestDto dto) {
+    public ResponseEntity<EmpresaResponseDto> atualizarPorId(@PathVariable Long id, @RequestBody EmpresaRequestDto dto) {
         return ResponseEntity.ok(empresaService.atualizar(id, dto));
     }
 

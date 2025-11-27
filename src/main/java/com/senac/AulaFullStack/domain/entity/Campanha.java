@@ -11,20 +11,22 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name= "campanha")
-public class Campanha {
+public class Campanha { // <--- ESSA LINHA PROVAVELMENTE SUMIU
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nome;
-    private String objetivo; // Substitui descricao
-    private BigDecimal orcamento; // Novo campo
-    private LocalDate dataInicio; // Novo campo
-    private LocalDate dataFim;    // Novo campo
+    private String objetivo;
+    private BigDecimal orcamento;
+    private LocalDate dataInicio;
+    private LocalDate dataFim;
     private LocalDateTime dataCriacao;
 
     @Enumerated(EnumType.STRING)
@@ -32,11 +34,11 @@ public class Campanha {
 
     @ManyToOne
     @JoinColumn(name = "canal_id", nullable = false)
-    private Canal canal; // Substitui especie
+    private Canal canal;
 
     @ManyToOne
     @JoinColumn(name="empresa_id")
-    private Empresa empresa; // Substitui ong
+    private Empresa empresa;
 
     public enum StatusCampanha {
         PLANEJAMENTO, ATIVA, PAUSADA, CONCLUIDA, CANCELADA
@@ -58,6 +60,7 @@ public class Campanha {
         return new CampanhaResponseDto(
                 id, nome, objetivo, orcamento, dataInicio, dataFim, status,
                 canal != null ? canal.getNome() : "Geral",
+                canal != null ? canal.getId() : null,
                 empresa != null ? empresa.getId() : null
         );
     }

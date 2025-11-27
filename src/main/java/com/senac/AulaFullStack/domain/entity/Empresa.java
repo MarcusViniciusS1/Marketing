@@ -24,39 +24,42 @@ public class Empresa {
     private String nomeFantasia;
     private String razaoSocial;
     private String cnpj;
-    private String setor;
     private String emailCorporativo;
     private String telefone;
+
+    // Campos opcionais
+    private String setor;
     private String cidade;
     private String endereco;
+
     private LocalDateTime dataCadastro;
 
-    @OneToMany(mappedBy = "empresa")
+    // CASCADE ALL: Se apagar a empresa, apaga a equipe e as campanhas automaticamente
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Usuario> equipe;
+
+    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Campanha> campanhas;
 
     public Empresa(EmpresaRequestDto dto) {
         this.nomeFantasia = dto.nomeFantasia();
         this.razaoSocial = dto.razaoSocial();
         this.cnpj = dto.cnpj();
-        this.setor = dto.setor();
         this.emailCorporativo = dto.email();
         this.telefone = dto.telefone();
-        this.cidade = dto.cidade();
-        this.endereco = dto.endereco();
         this.dataCadastro = LocalDateTime.now();
     }
 
     public void atualizar(EmpresaRequestDto dto) {
         this.nomeFantasia = dto.nomeFantasia();
         this.razaoSocial = dto.razaoSocial();
-        this.setor = dto.setor();
         this.emailCorporativo = dto.email();
         this.telefone = dto.telefone();
-        this.cidade = dto.cidade();
-        this.endereco = dto.endereco();
     }
 
     public EmpresaResponseDto toDto() {
-        return new EmpresaResponseDto(id, nomeFantasia, cnpj, setor, emailCorporativo, telefone, cidade);
+        return new EmpresaResponseDto(
+                id, nomeFantasia, cnpj, setor, emailCorporativo, telefone, cidade
+        );
     }
 }

@@ -17,52 +17,66 @@ public class CampanhaService {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private CanalRepository canalRepository;
 
-    public List<CampanhaResponseDto> listarMinhasCampanhas(UsuarioPrincipalDto user) {
+    public List<CampanhaResponseDto> listar(UsuarioPrincipalDto user) {
         Usuario usuario = usuarioRepository.findById(user.id()).orElseThrow();
+
+        // Se for ADMIN, vê tudo
+        if ("ADMIN".equals(usuario.getRole())) {
+            return campanhaRepository.findAll().stream().map(Campanha::toDto).collect(Collectors.toList());
+        }
+
+        // Se for User/Gerente sem empresa, retorna vazio
         if (usuario.getEmpresa() == null) return List.of();
 
         return campanhaRepository.findByEmpresaId(usuario.getEmpresa().getId())
                 .stream().map(Campanha::toDto).collect(Collectors.toList());
     }
 
-    public CampanhaResponseDto buscarPorId(Long id) {
+    public CampanhaResponseDto buscarPorId(Long id, UsuarioPrincipalDto user) {
         return campanhaRepository.findById(id).map(Campanha::toDto).orElse(null);
     }
 
     @Transactional
-    public CampanhaResponseDto criar(CampanhaRequestDto dto, UsuarioPrincipalDto user) {
-        Usuario usuario = usuarioRepository.findById(user.id()).orElseThrow();
-        if (usuario.getEmpresa() == null) throw new RuntimeException("Usuário não tem empresa vinculada");
+    public CampanhaResponseDto criar(CampanhaRequestDto dto, UsuarioPrincipalDto userDto) {
+        Usuario usuario = usuarioRepository.findById(userDto.id()).orElseThrow();
+
+        // Validação: Apenas quem tem empresa pode criar campanha (Para manter a consistência)
+        // Se for ADMIN e quiser testar, vincule o admin a uma empresa primeiro.
+        if (usuario.getEmpresa() == null) {
+            throw new RuntimeException("Para criar uma campanha, o usuário deve estar vinculado a uma empresa.");
+        }
 
         Canal canal = canalRepository.findById(dto.canalId())
-                .orElseThrow(() -> new RuntimeException("Canal não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Canal inválido."));
 
         Campanha campanha = new Campanha(dto, canal, usuario.getEmpresa());
         campanhaRepository.save(campanha);
+
         return campanha.toDto();
     }
 
     @Transactional
-    public CampanhaResponseDto atualizar(Long id, CampanhaRequestDto dto) {
+    public CampanhaResponseDto atualizar(Long id, CampanhaRequestDto dto, UsuarioPrincipalDto userDto) {
         Campanha campanha = campanhaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Campanha não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Campanha não encontrada."));
 
-        // Atualizar campos
         campanha.setNome(dto.nome());
         campanha.setObjetivo(dto.objetivo());
         campanha.setOrcamento(dto.orcamento());
         campanha.setDataInicio(dto.dataInicio());
         campanha.setDataFim(dto.dataFim());
 
-        // Atualiza Canal se mudou
-        if(!campanha.getCanal().getId().equals(dto.canalId())) {
-            Canal novoCanal = canalRepository.findById(dto.canalId()).orElseThrow();
-            campanha.setCanal(novoCanal);
+        if (!campanha.getCanal().getId().equals(dto.canalId())) {
+            campanha.setCanal(canalRepository.findById(dto.canalId()).orElseThrow());
         }
-
         return campanhaRepository.save(campanha).toDto();
     }
 
+    public void deletar(Long id, UsuarioPrincipalDto userDto) {
+        campanhaRepository.deleteById(id);
+    }
+
+    // Método sobrecarregado caso o controller chame sem usuario (Admin direto)
     public void deletar(Long id) {
         campanhaRepository.deleteById(id);
     }

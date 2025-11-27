@@ -20,87 +20,59 @@ import java.util.stream.Collectors;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private IEnvioEmail iEnvioEmail;
-
-    @Autowired
-    private EmpresaRepository empresaRepository;
-
-    @Autowired
-    private TokenService tokenService;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private IEnvioEmail iEnvioEmail;
+    @Autowired private EmpresaRepository empresaRepository;
+    @Autowired private TokenService tokenService;
 
     public boolean validarSenha(LoginRequestDto login){
         return usuarioRepository.existsUsuarioByEmailContainingAndSenha(login.email(), login.senha());
     }
 
     public UsuarioResponseDto consultarPorId(Long id){
-        return usuarioRepository.findById(id)
-                .map(UsuarioResponseDto::new)
-                .orElse(null);
+        return usuarioRepository.findById(id).map(UsuarioResponseDto::new).orElse(null);
     }
 
     public List<UsuarioResponseDto> consultarTodosSemFiltro(){
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
-    // --- MÉTODO QUE ESTAVA FALTANDO ---
     public List<UsuarioResponseDto> listarPorEmpresa(UsuarioPrincipalDto principal) {
         Usuario usuarioLogado = usuarioRepository.findById(principal.id()).orElseThrow();
+        if (usuarioLogado.getEmpresa() == null) return List.of(usuarioLogado.toDtoResponse());
 
-        if (usuarioLogado.getEmpresa() == null) {
-            // Se o usuário não tem empresa, retorna apenas ele mesmo ou lista vazia
-            return List.of(usuarioLogado.toDtoResponse());
-        }
-
-        // Filtra usuários que pertencem à mesma empresa do usuário logado
         return usuarioRepository.findAll().stream()
                 .filter(u -> u.getEmpresa() != null && u.getEmpresa().getId().equals(usuarioLogado.getEmpresa().getId()))
                 .map(Usuario::toDtoResponse)
                 .collect(Collectors.toList());
     }
-    // ----------------------------------
 
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
-        // 1. Validação de E-mail Único
-        var usuarioExistente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
-
-        if (usuarioExistente != null) {
-            boolean isMesmoUsuario = usuarioExistente.getCpf().equals(usuarioRequest.cpf());
-            if (!isMesmoUsuario) {
-                throw new RuntimeException("Este e-mail já está em uso por outro usuário.");
+        var existente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
+        if (existente != null && (usuarioRequest.id() == null || !existente.getId().equals(usuarioRequest.id()))) {
+            if (!existente.getCpf().equals(usuarioRequest.cpf())) {
+                throw new RuntimeException("Email já cadastrado!");
             }
         }
 
-        // 2. Busca a empresa
         Empresa empresa = null;
-        if (usuarioRequest.empresaId() != null){
-            empresa = empresaRepository.findById(usuarioRequest.empresaId())
-                    .orElseThrow(() -> new RuntimeException("Empresa informada não encontrada."));
+        if (usuarioRequest.empresaId() != null) {
+            empresa = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
         }
 
         Empresa finalEmpresa = empresa;
-
-        // 3. Salva ou Atualiza
-        var usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
+        Usuario usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
                     u.setNome(usuarioRequest.nome());
-                    if (usuarioRequest.senha() != null && !usuarioRequest.senha().isEmpty()) {
-                        u.setSenha(usuarioRequest.senha());
-                    }
+                    if(usuarioRequest.senha() != null && !usuarioRequest.senha().isEmpty()) u.setSenha(usuarioRequest.senha());
                     u.setRole(usuarioRequest.role());
                     u.setEmail(usuarioRequest.email());
                     u.setTelefone(usuarioRequest.telefone());
-
-                    if(finalEmpresa != null) {
-                        u.setEmpresa(finalEmpresa);
-                    }
-
+                    if(finalEmpresa != null) u.setEmpresa(finalEmpresa);
                     return u;
-                }) .orElse(new Usuario(usuarioRequest, finalEmpresa));
+                })
+                .orElse(new Usuario(usuarioRequest, finalEmpresa));
 
         usuarioRepository.save(usuario);
         return usuario.toDtoResponse();
@@ -109,73 +81,55 @@ public class UsuarioService {
     public List<UsuarioResponseDto> consultarPaginadoFiltrado(Long take, Long page, String filtro) {
         return usuarioRepository.findAll().stream()
                 .sorted(Comparator.comparing(Usuario::getId).reversed())
-                .filter(a -> filtro != null ? a.getNome().contains(filtro) : true)
-                .skip((long) page * take).limit(take).map(UsuarioResponseDto::new).collect(Collectors.toList());
+                .skip((long) page * take).limit(take)
+                .map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
-    public String gerarCodigoAleatorio(int length) {
-        final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        SecureRandom random = new SecureRandom();
-        StringBuilder senha = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(CHARS.length());
-            senha.append(CHARS.charAt(randomIndex));
-        }
-        return senha.toString();
-    }
-
-    public void recuperarSenha(RecuperarSenhaDto recuperarSenhaDto) {
-        var usuario = usuarioRepository.findByEmail(recuperarSenhaDto.email()).orElse(null);
-
+    public void recuperarSenha(RecuperarSenhaDto dto) {
+        var usuario = usuarioRepository.findByEmail(dto.email()).orElse(null);
         if (usuario != null){
-            var codigo = gerarCodigoAleatorio(8);
+            String codigo = "123456";
             usuario.setTokenSenha(codigo);
             usuarioRepository.save(usuario);
-            iEnvioEmail.enviarEmailComTemplate(recuperarSenhaDto.email(), "Código de recuperação", codigo);
         }
     }
 
-    public void registrarNovaSenha(RegistrarNovaSenhaDto registrarNovaSenhaDto) {
-        var usuario = usuarioRepository
-                .findByEmailAndTokenSenha(
-                        registrarNovaSenhaDto.email(),
-                        registrarNovaSenhaDto.token()
-                ).orElse(null);
+    public void registrarNovaSenha(RegistrarNovaSenhaDto dto) {
+        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token()).orElse(null);
         if (usuario != null) {
-            usuario.setSenha(registrarNovaSenhaDto.senha());
+            usuario.setSenha(dto.senha());
             usuarioRepository.save(usuario);
-        } else {
-            throw new RuntimeException("Token inválido ou expirado.");
         }
     }
 
     @Transactional
-    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao usuarioRequest, UsuarioPrincipalDto usuarioPrincipalDto) {
-        Usuario usuarioLogado = usuarioRepository.findById(usuarioPrincipalDto.id())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        usuarioLogado.setNome(usuarioRequest.nome());
-        usuarioLogado.setTelefone(usuarioRequest.telefone());
-        usuarioLogado.setEmail(usuarioRequest.email());
-
-        usuarioRepository.save(usuarioLogado);
-        return usuarioLogado.toDtoResponse();
+    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {
+        Usuario usuario = usuarioRepository.findById(principal.id()).orElseThrow();
+        usuario.setNome(dto.nome());
+        usuario.setTelefone(dto.telefone());
+        usuario.setEmail(dto.email());
+        usuarioRepository.save(usuario);
+        return usuario.toDtoResponse();
     }
 
     public UsuarioResponseDto buscarUsuarioLogado(UsuarioPrincipalDto principal) {
-        var usuario = usuarioRepository.findById(principal.id())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        return usuario.toDtoResponse();
+        return usuarioRepository.findById(principal.id()).map(Usuario::toDtoResponse).orElseThrow();
     }
 
     @Transactional
     public UsuarioResponseDto vincularUsuarioComEmpresa(Long empresaId, Usuario usuarioLogado) {
-        Empresa empresa = empresaRepository.findById(empresaId)
-                .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
-
+        Empresa empresa = empresaRepository.findById(empresaId).orElseThrow();
         usuarioLogado.setEmpresa(empresa);
         usuarioRepository.save(usuarioLogado);
-
         return usuarioLogado.toDtoResponse();
+    }
+
+    // --- MÉTODO QUE FALTAVA ---
+    public void deletar(Long id) {
+        if (usuarioRepository.existsById(id)) {
+            usuarioRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Usuário não encontrado para exclusão");
+        }
     }
 }

@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { registrarNovaSenha } from "../../../services/usuarioService";
 
 export default function ResetarSenha() {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Pega o e-mail da tela anterior
+  const [email, setEmail] = useState(location.state?.email || "");
   const [token, setToken] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
@@ -11,80 +15,63 @@ export default function ResetarSenha() {
   const salvar = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await registrarNovaSenha({ email, token, senha });
       alert("Senha alterada com sucesso!");
+      navigate("/");
     } catch {
-      alert("Erro ao alterar senha.");
+      alert("Erro ao alterar senha. Verifique o código.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <>
       <div className="text-center mb-3">
-        <img
-          src="/img/logo.png"
-          alt="logo"
-          style={{ width: "90px", height: "90px" }}
-          className="mb-2"
-        />
+        <img src="/img/logo.png" alt="logo" style={{ width: "90px", height: "90px" }} className="mb-2" />
       </div>
-
-      <h3 className="fw-bold text-info text-center">Definir Nova Senha</h3>
-      <p className="text-secondary text-center mb-4">
-        Insira o código recebido e sua nova senha
-      </p>
+      <h3 className="fw-bold text-primary text-center">Definir Nova Senha</h3>
+      <p className="text-secondary text-center mb-4">Insira o código recebido e sua nova senha</p>
 
       <form onSubmit={salvar}>
         <div className="mb-3">
-          <label className="form-label text-light">E-mail</label>
+          <label className="form-label fw-bold text-secondary small">E-mail</label>
           <input
-            className="form-control bg-dark text-light border-secondary"
+            className="form-control p-3 border-0 bg-light"
+            style={{ borderRadius: "10px" }}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Digite seu e-mail"
             required
           />
         </div>
-
         <div className="mb-3">
-          <label className="form-label text-light">Token</label>
+          <label className="form-label fw-bold text-secondary small">Código</label>
           <input
-            className="form-control bg-dark text-light border-secondary"
+            className="form-control p-3 border-0 bg-light text-center fw-bold"
+            style={{ borderRadius: "10px", letterSpacing: "3px" }}
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="Código recebido"
+            placeholder="000000"
             required
           />
         </div>
-
         <div className="mb-3">
-          <label className="form-label text-light">Nova senha</label>
+          <label className="form-label fw-bold text-secondary small">Nova senha</label>
           <input
             type="password"
-            className="form-control bg-dark text-light border-secondary"
+            className="form-control p-3 border-0 bg-light"
+            style={{ borderRadius: "10px" }}
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            placeholder="Digite a nova senha"
             required
           />
         </div>
-
-        <button
-          type="submit"
-          className="btn btn-success w-100 fw-bold"
-          disabled={loading}
-        >
+        <button type="submit" className="btn btn-success w-100 fw-bold py-3 shadow-sm" disabled={loading} style={{ borderRadius: "12px" }}>
           {loading ? "Salvando..." : "Salvar nova senha"}
         </button>
-
         <div className="text-center mt-3">
-          <Link to="/recuperarSenha" className="small text-info text-decoration-none">
-            Voltar
-          </Link>
+          <Link to="/recuperarSenha" className="small text-primary text-decoration-none fw-bold">Reenviar código</Link>
         </div>
       </form>
     </>

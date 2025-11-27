@@ -12,9 +12,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random; // Necessário para gerar o código
 import java.util.stream.Collectors;
 
 @Service
@@ -37,18 +37,15 @@ public class UsuarioService {
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
-    // --- CORREÇÃO: Lógica Inteligente para Admin vs Empresa ---
     public List<UsuarioResponseDto> listarPorEmpresa(UsuarioPrincipalDto principal) {
         Usuario usuarioLogado = usuarioRepository.findById(principal.id()).orElseThrow();
 
-        // SE FOR ADMIN: Vê todos os usuários do sistema
         if ("ADMIN".equals(usuarioLogado.getRole())) {
             return usuarioRepository.findAll().stream()
                     .map(Usuario::toDtoResponse)
                     .collect(Collectors.toList());
         }
 
-        // SE FOR GERENTE/USER: Vê apenas da sua empresa
         if (usuarioLogado.getEmpresa() == null) {
             return List.of(usuarioLogado.toDtoResponse());
         }
@@ -58,7 +55,6 @@ public class UsuarioService {
                 .map(Usuario::toDtoResponse)
                 .collect(Collectors.toList());
     }
-    // ----------------------------------------------------------
 
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
@@ -87,7 +83,6 @@ public class UsuarioService {
                 })
                 .orElse(new Usuario(usuarioRequest, finalEmpresa));
 
-        // Regra: Se empresa ID 1 -> Admin
         if (finalEmpresa != null && finalEmpresa.getId() == 1L) {
             usuario.setRole("ADMIN");
         } else if (usuario.getRole() == null || usuario.getRole().isEmpty()) {
@@ -107,22 +102,31 @@ public class UsuarioService {
                 .map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
+    // --- MÉTODO CORRIGIDO ---
     public void recuperarSenha(RecuperarSenhaDto dto) {
         var usuario = usuarioRepository.findByEmail(dto.email()).orElse(null);
+
         if (usuario != null){
-            String codigo = "123456";
+            // Gera código aleatório de 6 dígitos
+            String codigo = String.format("%06d", new Random().nextInt(999999));
+
             usuario.setTokenSenha(codigo);
             usuarioRepository.save(usuario);
+
+            // ENVIA O E-MAIL (Isso estava faltando)
+            iEnvioEmail.enviarEmailComTemplate(usuario.getEmail(), "Recuperação de Senha - MktManager", codigo);
         }
     }
 
     public void registrarNovaSenha(RegistrarNovaSenhaDto dto) {
-        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token()).orElse(null);
-        if (usuario != null) {
-            usuario.setSenha(dto.senha());
-            usuarioRepository.save(usuario);
-        }
+        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token())
+                .orElseThrow(() -> new RuntimeException("Token inválido ou expirado."));
+
+        usuario.setSenha(dto.senha());
+        usuario.setTokenSenha(null); // Invalida o token após o uso
+        usuarioRepository.save(usuario);
     }
+    // ------------------------
 
     @Transactional
     public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {

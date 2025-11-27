@@ -31,6 +31,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.consultarTodosSemFiltro());
     }
 
+    // Essa rota agora retorna TODOS para o Admin e APENAS DA EMPRESA para os outros
     @GetMapping("/minha-empresa")
     public ResponseEntity<List<UsuarioResponseDto>> listarPorEmpresa(@AuthenticationPrincipal UsuarioPrincipalDto user) {
         return ResponseEntity.ok(usuarioService.listarPorEmpresa(user));
@@ -63,7 +64,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.vincularUsuarioComEmpresa(empresaId, logado));
     }
 
-    // --- ROTA DE DELETE ---
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir usuário")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {

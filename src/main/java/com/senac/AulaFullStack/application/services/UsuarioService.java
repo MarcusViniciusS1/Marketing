@@ -37,19 +37,31 @@ public class UsuarioService {
         return usuarioRepository.findAll().stream().map(UsuarioResponseDto::new).collect(Collectors.toList());
     }
 
+    // --- CORREÇÃO: Lógica Inteligente para Admin vs Empresa ---
     public List<UsuarioResponseDto> listarPorEmpresa(UsuarioPrincipalDto principal) {
         Usuario usuarioLogado = usuarioRepository.findById(principal.id()).orElseThrow();
-        if (usuarioLogado.getEmpresa() == null) return List.of(usuarioLogado.toDtoResponse());
+
+        // SE FOR ADMIN: Vê todos os usuários do sistema
+        if ("ADMIN".equals(usuarioLogado.getRole())) {
+            return usuarioRepository.findAll().stream()
+                    .map(Usuario::toDtoResponse)
+                    .collect(Collectors.toList());
+        }
+
+        // SE FOR GERENTE/USER: Vê apenas da sua empresa
+        if (usuarioLogado.getEmpresa() == null) {
+            return List.of(usuarioLogado.toDtoResponse());
+        }
 
         return usuarioRepository.findAll().stream()
                 .filter(u -> u.getEmpresa() != null && u.getEmpresa().getId().equals(usuarioLogado.getEmpresa().getId()))
                 .map(Usuario::toDtoResponse)
                 .collect(Collectors.toList());
     }
+    // ----------------------------------------------------------
 
     @Transactional
     public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
-        // 1. Validação de duplicidade
         var existente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
         if (existente != null && (usuarioRequest.id() == null || !existente.getId().equals(usuarioRequest.id()))) {
             if (!existente.getCpf().equals(usuarioRequest.cpf())) {
@@ -57,7 +69,6 @@ public class UsuarioService {
             }
         }
 
-        // 2. Busca Empresa
         Empresa empresa = null;
         if (usuarioRequest.empresaId() != null) {
             empresa = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
@@ -65,7 +76,6 @@ public class UsuarioService {
 
         Empresa finalEmpresa = empresa;
 
-        // 3. Salva/Atualiza Usuário
         Usuario usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
                     u.setNome(usuarioRequest.nome());
@@ -77,14 +87,12 @@ public class UsuarioService {
                 })
                 .orElse(new Usuario(usuarioRequest, finalEmpresa));
 
-        // --- NOVO CRITÉRIO: ID 1 = SUPER ADMIN ---
+        // Regra: Se empresa ID 1 -> Admin
         if (finalEmpresa != null && finalEmpresa.getId() == 1L) {
-            usuario.setRole("ADMIN"); // Força privilégio máximo
+            usuario.setRole("ADMIN");
         } else if (usuario.getRole() == null || usuario.getRole().isEmpty()) {
-            // Se não for da empresa 1 e não tiver role, usa a do request ou padrão
             usuario.setRole(usuarioRequest.role() != null ? usuarioRequest.role() : "USER");
         } else {
-            // Mantém a role que veio do request (caso seja edição de permissão)
             usuario.setRole(usuarioRequest.role());
         }
 
@@ -133,12 +141,9 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponseDto vincularUsuarioComEmpresa(Long empresaId, Usuario usuarioLogado) {
         Empresa empresa = empresaRepository.findById(empresaId).orElseThrow();
-
-        // Aplica a regra também no vínculo manual
         if (empresa.getId() == 1L) {
             usuarioLogado.setRole("ADMIN");
         }
-
         usuarioLogado.setEmpresa(empresa);
         usuarioRepository.save(usuarioLogado);
         return usuarioLogado.toDtoResponse();

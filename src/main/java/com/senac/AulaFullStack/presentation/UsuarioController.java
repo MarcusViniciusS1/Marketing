@@ -31,20 +31,22 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.consultarTodosSemFiltro());
     }
 
-    // Essa rota agora retorna TODOS para o Admin e APENAS DA EMPRESA para os outros
     @GetMapping("/minha-empresa")
     public ResponseEntity<List<UsuarioResponseDto>> listarPorEmpresa(@AuthenticationPrincipal UsuarioPrincipalDto user) {
         return ResponseEntity.ok(usuarioService.listarPorEmpresa(user));
     }
 
+    // --- ALTERAÇÃO AQUI: Adicionado @AuthenticationPrincipal ---
     @PostMapping
-    public ResponseEntity<?> cadastrarUsuario(@RequestBody UsuarioRequestDto usuario){
+    public ResponseEntity<?> cadastrarUsuario(@RequestBody UsuarioRequestDto usuario, @AuthenticationPrincipal UsuarioPrincipalDto userLogado){
         try{
-            return ResponseEntity.ok(usuarioService.salvarUsuario(usuario));
+            // Se userLogado for null, é um cadastro público (ex: auto-cadastro), senão é logado
+            return ResponseEntity.ok(usuarioService.salvarUsuario(usuario, userLogado));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    // -----------------------------------------------------------
 
     @PutMapping("/editar")
     public ResponseEntity<UsuarioResponseDto> editarUser(

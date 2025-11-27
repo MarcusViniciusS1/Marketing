@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux"; // Importe o useSelector
+import type { RootState } from "../../../redux/store"; // Importe o tipo RootState
 import { 
   cadastrarUsuario, 
   buscarUsuarioLogado, 
@@ -11,10 +13,13 @@ import { buscarTodasEmpresas } from "../../../services/empresaService";
 
 export default function FormularioUsuario() {
   const navigate = useNavigate();
-  const { id } = useParams(); // Se tiver ID, é edição
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
   
-  // Estado para a lista de empresas do Select
+  // Dados do usuário logado para verificar permissão
+  const usuarioLogado = useSelector((state: RootState) => state.auth.usuario);
+  const isAdmin = usuarioLogado?.role === 'ADMIN';
+
   const [empresas, setEmpresas] = useState<{id: number, nomeFantasia: string}[]>([]);
 
   const [form, setForm] = useState<UsuarioRequest>({
@@ -23,7 +28,7 @@ export default function FormularioUsuario() {
     email: "",
     senha: "",
     telefone: "",
-    role: "USER", // Padrão: Funcionário
+    role: "USER",
     empresaId: undefined
   });
 
@@ -33,42 +38,32 @@ export default function FormularioUsuario() {
 
   async function carregarDados() {
     try {
-      // 1. Carrega as empresas disponíveis para o Select
-      try {
-          const listaEmpresas = await buscarTodasEmpresas();
-          setEmpresas(listaEmpresas);
-          
-          // Se a lista tiver apenas 1 empresa (caso do Gerente), já seleciona ela automaticamente
-          if (listaEmpresas.length === 1 && !id) {
-              setForm(prev => ({ ...prev, empresaId: listaEmpresas[0].id }));
+      // Só carrega lista de empresas se for ADMIN
+      if (isAdmin) {
+          try {
+              const listaEmpresas = await buscarTodasEmpresas();
+              setEmpresas(listaEmpresas);
+          } catch (err) {
+              console.log("Erro ao carregar empresas.");
           }
-      } catch (err) {
-          console.log("Não foi possível carregar lista de empresas (pode ser restrição de acesso).");
       }
 
       if (id) {
-        // --- MODO EDIÇÃO ---
         const usuario = await buscarUsuarioPorId(id);
         setForm({
           id: usuario.id,
           nome: usuario.nome,
-          cpf: "", // CPF protegido/oculto na edição
+          cpf: "", // CPF oculto na edição
           email: usuario.email,
-          senha: "", // Senha vazia para não alterar
+          senha: "",
           telefone: usuario.telefone,
           role: usuario.role,
           empresaId: usuario.empresaId
         });
       } else {
-        // --- MODO CRIAÇÃO ---
-        // Tenta pegar a empresa do usuário logado como fallback se a lista falhar ou estiver vazia
-        if (!form.empresaId) {
-            try {
-                const userLogado = await buscarUsuarioLogado();
-                if (userLogado.empresaId) {
-                    setForm(prev => ({ ...prev, empresaId: userLogado.empresaId }));
-                }
-            } catch (e) { console.error(e); }
+        // Se NÃO for Admin, preenche automaticamente com a empresa do usuário logado
+        if (!isAdmin && usuarioLogado?.empresaId) {
+             setForm(prev => ({ ...prev, empresaId: usuarioLogado.empresaId }));
         }
       }
     } catch (error) {
@@ -86,25 +81,24 @@ export default function FormularioUsuario() {
     setLoading(true);
 
     try {
-      // Garante que empresaId seja número ou undefined
       const payload = { 
           ...form, 
-          empresaId: form.empresaId ? Number(form.empresaId) : undefined 
+          // Se não for admin, garante que o ID da empresa é o mesmo do logado
+          empresaId: isAdmin ? (form.empresaId ? Number(form.empresaId) : undefined) : usuarioLogado?.empresaId 
       };
 
       if (id) {
-        await editarUsuario(payload); // Usa put se for edição
+        await editarUsuario(payload);
         alert("Usuário atualizado com sucesso!");
       } else {
-        await cadastrarUsuario(payload); // Usa post se for novo
+        await cadastrarUsuario(payload);
         alert("Novo membro cadastrado com sucesso!");
       }
       
       navigate("/usuarios");
     } catch (error: any) {
       console.error(error);
-      const msg = error.response?.data || "Erro ao salvar usuário. Verifique os dados.";
-      // Se o backend retornar objeto de erro, tenta stringify
+      const msg = error.response?.data || "Erro ao salvar usuário.";
       alert(typeof msg === 'object' ? JSON.stringify(msg) : msg);
     } finally {
       setLoading(false);
@@ -177,7 +171,7 @@ export default function FormularioUsuario() {
 
             <div className="col-md-6">
               <label className="form-label fw-semibold">
-                Senha {id && <span className="text-muted fw-normal">(Deixe vazio para manter)</span>}
+                Senha {id && <span className="text-muted fw-normal">(Vazio para manter)</span>}
               </label>
               <input 
                 type="password" 
@@ -200,30 +194,31 @@ export default function FormularioUsuario() {
               >
                 <option value="USER">Funcionário</option>
                 <option value="GERENTE">Gerente</option>
-                <option value="ADMIN">Super Admin (Plataforma)</option>
+                {/* Só mostra opção ADMIN se quem está logado for ADMIN */}
+                {isAdmin && <option value="ADMIN">Super Admin (Plataforma)</option>}
               </select>
             </div>
 
-            <div className="col-12">
-              <label className="form-label fw-semibold">Empresa Vinculada</label>
-              <select 
-                name="empresaId" 
-                className="form-select" 
-                value={form.empresaId || ""} 
-                onChange={handleChange}
-                required
-              >
-                <option value="">Selecione uma empresa...</option>
-                {empresas.map(e => (
-                  <option key={e.id} value={e.id}>
-                    {e.nomeFantasia} (ID: {e.id})
-                  </option>
-                ))}
-              </select>
-              <div className="form-text">
-                O usuário só verá dados desta empresa.
-              </div>
-            </div>
+            {/* SELEÇÃO DE EMPRESA: Só aparece para ADMIN */}
+            {isAdmin && (
+                <div className="col-12">
+                  <label className="form-label fw-semibold">Empresa Vinculada</label>
+                  <select 
+                    name="empresaId" 
+                    className="form-select" 
+                    value={form.empresaId || ""} 
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Selecione uma empresa...</option>
+                    {empresas.map(e => (
+                      <option key={e.id} value={e.id}>
+                        {e.nomeFantasia} (ID: {e.id})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+            )}
           </div>
 
           <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">

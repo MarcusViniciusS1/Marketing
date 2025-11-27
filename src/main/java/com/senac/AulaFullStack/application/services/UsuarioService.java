@@ -56,8 +56,10 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    // --- LÓGICA DE CADASTRO CORRIGIDA ---
     @Transactional
-    public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest) {
+    public UsuarioResponseDto salvarUsuario(UsuarioRequestDto usuarioRequest, UsuarioPrincipalDto userLogadoDto) {
+        // Validação de E-mail duplicado
         var existente = usuarioRepository.findByEmail(usuarioRequest.email()).orElse(null);
         if (existente != null && (usuarioRequest.id() == null || !existente.getId().equals(usuarioRequest.id()))) {
             if (!existente.getCpf().equals(usuarioRequest.cpf())) {
@@ -65,12 +67,54 @@ public class UsuarioService {
             }
         }
 
-        Empresa empresa = null;
-        if (usuarioRequest.empresaId() != null) {
-            empresa = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
+        // Determinar quem está criando
+        Usuario criador = null;
+        boolean isCriadorAdmin = false;
+
+        if (userLogadoDto != null) {
+            criador = usuarioRepository.findById(userLogadoDto.id()).orElse(null);
+            if (criador != null && "ADMIN".equals(criador.getRole())) {
+                isCriadorAdmin = true;
+            }
+        } else {
+            // Se for cadastro público (sem login), tratamos como usuario comum se cadastrando
+            // ou podemos permitir criação livre dependendo da regra de negócio.
+            // Assumindo aqui que auto-cadastro é permitido.
         }
 
-        Empresa finalEmpresa = empresa;
+        Empresa empresaVinculo = null;
+        String roleVinculo = usuarioRequest.role();
+
+        if (isCriadorAdmin) {
+            // ADMIN: Pode escolher qualquer empresa e qualquer role
+            if (usuarioRequest.empresaId() != null) {
+                empresaVinculo = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
+            }
+        } else {
+            // GERENTE/USER ou PÚBLICO
+
+            // 1. Regra da Role: Não pode criar ADMIN
+            if ("ADMIN".equals(roleVinculo)) {
+                throw new RuntimeException("Permissão negada: Você não pode criar usuários Administradores.");
+            }
+            // Se não informou role, padrão é USER
+            if (roleVinculo == null || roleVinculo.isEmpty()) {
+                roleVinculo = "USER";
+            }
+
+            // 2. Regra da Empresa:
+            if (criador != null && criador.getEmpresa() != null) {
+                // Se for um Gerente criando, OBRIGATORIAMENTE vincula na empresa dele
+                empresaVinculo = criador.getEmpresa();
+            } else if (usuarioRequest.empresaId() != null) {
+                // Se for auto-cadastro público, permite escolher a empresa
+                empresaVinculo = empresaRepository.findById(usuarioRequest.empresaId()).orElse(null);
+            }
+        }
+
+        // Preparação final para salvar
+        Empresa finalEmpresa = empresaVinculo;
+        String finalRole = roleVinculo;
 
         Usuario usuario = usuarioRepository.findByCpf(usuarioRequest.cpf())
                 .map(u -> {
@@ -83,57 +127,18 @@ public class UsuarioService {
                 })
                 .orElse(new Usuario(usuarioRequest, finalEmpresa));
 
-        if (finalEmpresa != null && finalEmpresa.getId() == 1L) {
+        // Regra de segurança final: Se a empresa for ID 1 (Matriz), força ADMIN se não tiver role definida
+        // Mas se o criador não é Admin, ele já foi barrado de criar Admin acima.
+        if (finalEmpresa != null && finalEmpresa.getId() == 1L && isCriadorAdmin) {
             usuario.setRole("ADMIN");
-        } else if (usuario.getRole() == null || usuario.getRole().isEmpty()) {
-            usuario.setRole(usuarioRequest.role() != null ? usuarioRequest.role() : "USER");
         } else {
-            usuario.setRole(usuarioRequest.role());
+            usuario.setRole(finalRole);
         }
 
         usuarioRepository.save(usuario);
         return usuario.toDtoResponse();
     }
-
-    // --- LÓGICA DE EDIÇÃO CORRIGIDA ---
-    @Transactional
-    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {
-        // Verifica se é ADMIN
-        boolean isAdmin = principal.autorizacao().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        // Se for Admin e mandou um ID, edita aquele ID. Se não, edita a si mesmo.
-        Long idAlvo = (isAdmin && dto.id() != null) ? dto.id() : principal.id();
-
-        Usuario usuario = usuarioRepository.findById(idAlvo)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        usuario.setNome(dto.nome());
-        usuario.setTelefone(dto.telefone());
-        usuario.setEmail(dto.email());
-
-        // Apenas Admin pode alterar Permissões e Empresa
-        if (isAdmin) {
-            if (dto.role() != null && !dto.role().isEmpty()) {
-                usuario.setRole(dto.role());
-            }
-
-            if (dto.empresaId() != null) {
-                Empresa empresa = empresaRepository.findById(dto.empresaId())
-                        .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
-                usuario.setEmpresa(empresa);
-
-                // Regra de negócio: Se for Empresa Matriz (ID 1), força ser Admin
-                if (empresa.getId() == 1L) {
-                    usuario.setRole("ADMIN");
-                }
-            }
-        }
-
-        usuarioRepository.save(usuario);
-        return usuario.toDtoResponse();
-    }
-    // ----------------------------------
+    // ------------------------------------
 
     public List<UsuarioResponseDto> consultarPaginadoFiltrado(Long take, Long page, String filtro) {
         return usuarioRepository.findAll().stream()
@@ -148,15 +153,43 @@ public class UsuarioService {
             String codigo = String.format("%06d", new Random().nextInt(999999));
             usuario.setTokenSenha(codigo);
             usuarioRepository.save(usuario);
-            iEnvioEmail.enviarEmailComTemplate(usuario.getEmail(), "Recuperação de Senha", codigo);
+            iEnvioEmail.enviarEmailComTemplate(usuario.getEmail(), "Recuperação de Senha - MktManager", codigo);
         }
     }
 
     public void registrarNovaSenha(RegistrarNovaSenhaDto dto) {
-        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token()).orElseThrow(() -> new RuntimeException("Token inválido"));
+        var usuario = usuarioRepository.findByEmailAndTokenSenha(dto.email(), dto.token())
+                .orElseThrow(() -> new RuntimeException("Token inválido ou expirado."));
+
         usuario.setSenha(dto.senha());
         usuario.setTokenSenha(null);
         usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public UsuarioResponseDto editarUsuario(UsuarioRequestEdicao dto, UsuarioPrincipalDto principal) {
+        boolean isAdmin = principal.autorizacao().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long idAlvo = (isAdmin && dto.id() != null) ? dto.id() : principal.id();
+
+        Usuario usuario = usuarioRepository.findById(idAlvo)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        usuario.setNome(dto.nome());
+        usuario.setTelefone(dto.telefone());
+        usuario.setEmail(dto.email());
+
+        // Apenas Admin pode alterar Permissões e Empresa
+        if (isAdmin) {
+            if (dto.role() != null && !dto.role().isEmpty()) usuario.setRole(dto.role());
+            if (dto.empresaId() != null) {
+                Empresa empresa = empresaRepository.findById(dto.empresaId()).orElseThrow();
+                usuario.setEmpresa(empresa);
+                if (empresa.getId() == 1L) usuario.setRole("ADMIN");
+            }
+        }
+
+        usuarioRepository.save(usuario);
+        return usuario.toDtoResponse();
     }
 
     public UsuarioResponseDto buscarUsuarioLogado(UsuarioPrincipalDto principal) {

@@ -11,7 +11,7 @@ import Dashboard from "./pages/Admin/dashboard";
 import ListaCampanhas from "./pages/Admin/campanhas/lista";
 import FormCampanha from "./pages/Admin/campanhas/formulario";
 
-// Agora usamos apenas a LISTA e o FORMULÁRIO unificados
+
 import ListaEmpresas from "./pages/Admin/empresa/lista";
 import FormularioEmpresaAdmin from "./pages/Admin/empresa/formulario";
 
@@ -32,17 +32,17 @@ export default function AppRoutes() {
             <Route path="/home" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             
-            {/* Empresas Unificadas */}
+            
             <Route path="/empresas" element={<ListaEmpresas />} />
             <Route path="/empresa/nova" element={<FormularioEmpresaAdmin />} />
             <Route path="/empresa/:id/editar" element={<FormularioEmpresaAdmin />} />
 
-            {/* Campanhas */}
+            
             <Route path="/campanhas" element={<ListaCampanhas />} />
             <Route path="/campanhas/nova" element={<FormCampanha />} />
             <Route path="/campanhas/:id/editar" element={<FormCampanha />} />
             
-            {/* Equipe */}
+            
             <Route path="/usuarios" element={<ListaUsuarios />} />
             <Route path="/usuarios/novo" element={<FormularioUsuario />} />
             <Route path="/usuarios/:id/editar" element={<FormularioUsuario />} />
